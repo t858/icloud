@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Unlock Solutions | Premium</title>
+    <style>
+        :root { --primary: #0071e3; --primary-hover: #0077ed; --bg: #f5f5f7; --card-bg: #ffffff; --text: #1d1d1f; --text-muted: #86868b; --border: #d2d2d7; --success: #34c759; --zelle: #741bda; --chime: #25c866; --interac: #f2b705; --bitcoin: #f7931a; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+        .main-header { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; padding: 15px 0; }
+        .nav-container { max-width: 1140px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.5px; }
+        .logo span { color: var(--primary); }
+        .wrapper { max-width: 1140px; margin: 40px auto; padding: 0 20px; }
+        .hero { text-align: center; margin-bottom: 50px; }
+        .hero h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: -1px; margin-bottom: 12px; }
+        .hero p { color: var(--text-muted); font-size: 1.15rem; font-weight: 400; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 30px; }
+        @media(min-width: 768px) { .grid { grid-template-columns: 1fr 1.2fr; } }
+        .card { background: var(--card-bg); border-radius: 20px; padding: 35px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.04); }
+        h2 { font-size: 1.4rem; font-weight: 600; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+        .form-group { margin-bottom: 24px; position: relative; }
+        label { display: block; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 10px; }
+        select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.2em; cursor: pointer; }
+        select, input[type="text"], input[type="email"], input[type="number"] { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; outline: none; background-color: #fafafa; transition: all 0.2s; color: var(--text); }
+        select:focus, input:focus { border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 4px rgba(0,113,227,0.1); }
+        .location-indicator { position: absolute; right: 15px; top: 43px; font-size: 1.2rem; pointer-events: none; }
+        
+        /* Live Summary Panel Styling */
+        .live-summary-box { background: #fafafa; border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+        .live-summary-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; }
+        .live-summary-item span:first-child { color: var(--text-muted); }
+        .live-summary-item span:last-child { font-weight: 600; color: var(--text); text-align: right; }
+        
+        .badge { background: #0071e3; color: white; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; float: right; margin-top: -3px; }
+        .checkout-summary { background: #f5f5f7; border-radius: 14px; padding: 20px; margin-top: 30px; }
+        .summary-line { display: flex; justify-content: space-between; font-size: 0.9rem; color: #515154; margin-bottom: 10px; }
+        .bold { font-weight: 600; color: var(--text); }
+        .total { border-top: 1px dashed var(--border); margin-top: 15px; padding-top: 15px; font-size: 1.25rem; font-weight: 700; color: var(--text); }
+        .price-accent { color: var(--primary); font-weight: 700; }
+        .action-btn { display: block; width: 100%; background: var(--primary); color: white; border: none; padding: 16px; font-size: 1.05rem; font-weight: 600; border-radius: 12px; cursor: pointer; transition: 0.2s; margin-top: 25px; }
+        .action-btn:hover { background: var(--primary-hover); }
+
+        /* Centered Payment Screens */
+        .payment-screen { display: none; text-align: center; animation: fadeIn 0.5s ease; padding: 20px 0; max-width: 500px; margin: 0 auto; }
+        .payment-screen h3 { font-size: 1.6rem; margin-bottom: 10px; }
+        .payment-screen p { color: var(--text-muted); margin-bottom: 25px; font-size: 1.05rem; }
+        .pay-btn { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 600; border-radius: 12px; cursor: pointer; transition: 0.2s; margin-bottom: 15px; }
+        .pay-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-bitcoin { background: var(--bitcoin); color: #fff; }
+        .btn-chime { background: var(--chime); color: #fff; }
+        .btn-zelle { background: var(--zelle); color: #fff; }
+        .btn-interac { background: var(--interac); color: #000; }
+        .back-to-order { display: inline-block; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: 600; cursor: pointer; }
+        .back-to-order:hover { text-decoration: underline; }
+        
+        .spinner { border: 4px solid rgba(0,0,0,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .timer-box { background: #fff3cd; color: #856404; padding: 12px; border-radius: 10px; font-weight: 600; margin: 20px 0; border: 1px solid #ffeeba; }
+        .payment-details-card { background: #fafafa; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 20px 0; word-break: break-all; text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="nav-container">
+            <div class="logo">🧬 Global<span>Unlock</span></div>
+        </div>
+    </header>
+
+    <main class="wrapper">
+        <section class="hero">
+            <h1>iCloud & Network Unlock Services</h1>
+            <p>Permanent, carrier-grade unlock solutions processed securely.</p>
+        </section>
+
+        <div class="grid" id="mainGrid">
+            <!-- Left Hand Live Selection Panel (Only visible on page 1) -->
+            <div class="card" id="leftSummaryCard" style="align-self: start;">
+                <h2>Live Selection <span class="badge">Active</span></h2>
+                <div class="live-summary-box">
+                    <div class="live-summary-item">
+                        <span>Country:</span>
+                        <span id="liveCountry">Detecting...</span>
+                    </div>
+                    <div class="live-summary-item">
+                        <span>Current Device:</span>
+                        <span id="liveActiveDevice">Detecting...</span>
+                    </div>
+                    <div class="live-summary-item">
+                        <span>Target Service:</span>
+                        <span id="liveService">--</span>
+                    </div>
+                    <div class="live-summary-item">
+                        <span>Target Model:</span>
+                        <span id="liveDevice">--</span>
+                    </div>
+                    <div class="live-summary-item">
+                        <span>IMEI/Serial:</span>
+                        <span id="liveImei">--</span>
+                    </div>
+                    <div class="live-summary-item">
+                        <span>Email:</span>
+                        <span id="liveEmail">--</span>
+                    </div>
+                    <div style="border-top: 1px dashed var(--border); margin-top: 12px; padding-top: 12px;" class="live-summary-item">
+                        <span>Total Amount:</span>
+                        <span id="liveTotal" class="price-accent">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form & Checkout Area -->
+            <div class="card" id="formCardContainer">
+                <!-- STEP 1: FORM CONFIGURATION -->
+                <div id="formContentArea">
+                    <h2>Configure Unlock Order</h2>
+                    <form id="clientForm">
+                        <div class="form-group">
+                            <label>1. Current Country</label>
+                            <input type="text" id="userCountry" required placeholder="Detecting country..." oninput="updateLiveSummary()">
+                            <span class="location-indicator">🌐</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>2. Current Device Being Used</label>
+                            <input type="text" id="currentDeviceInput" required placeholder="Detecting active device..." oninput="updateLiveSummary()">
+                            <span class="location-indicator">📱</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>3. Select Activation Service</label>
+                            <select id="serviceType" required onchange="calculateTotal()">
+                                <option value="" disabled selected>-- Select a service --</option>
+                                <option value="Network Unlock">Network Carrier Bypass Only</option>
+                                <option value="iCloud Unlock">iCloud Activation Lock Removal</option>
+                                <option value="Premium Combo">Full Device Profile Unlock (Both)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>4. Hardware Target Model</label>
+                            <select id="deviceModel" required onchange="handleModelChange()">
+                                <option value="" disabled selected>-- Select target device model --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label id="identifierLabel">5. Hardware IMEI / Serial Number</label>
+                            <input type="text" id="imeiOrSerial" placeholder="Enter 15-digit IMEI or Serial Number" required oninput="updateLiveSummary()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>6. Notification Email</label>
+                            <input type="email" id="email" placeholder="client@example.com" required oninput="updateLiveSummary()">
+                        </div>
+
+                        <div class="checkout-summary">
+                            <div class="summary-line"><span>Service:</span><span id="sumService" class="bold">--</span></div>
+                            <div class="summary-line total"><span>Total Amount Due:</span><span id="sumTotal" class="price-accent">$0.00</span></div>
+                        </div>
+
+                        <button type="submit" class="action-btn">Proceed to Checkout</button>
+                    </form>
+                </div>
+
+                <!-- STEP 2: METHOD SELECTION -->
+                <div id="paymentScreen" class="payment-screen">
+                    <div style="font-size: 3.5rem; margin-bottom: 5px;">🔒</div>
+                    <h3>Select Payment Method</h3>
+                    <p>Tracking Token: <strong id="displayToken" style="color:var(--text)"></strong></p>
+                    
+                    <div id="paymentOptionsContainer">
+                        <button onclick="selectPaymentMethod('Bitcoin')" class="pay-btn btn-bitcoin">Pay with Bitcoin</button>
+                        <button onclick="selectPaymentMethod('Chime')" class="pay-btn btn-chime">Pay with Chime</button>
+                        <button onclick="selectPaymentMethod('Zelle')" class="pay-btn btn-zelle">Pay with Zelle</button>
+                        <button onclick="selectPaymentMethod('e-Transfer')" class="pay-btn btn-interac">Pay with e-Transfer</button>
+                    </div>
+
+                    <a onclick="resetToOrderForm()" class="back-to-order">← Cancel and return to form</a>
+                </div>
+
+                <!-- STEP 3: LOADING SCREEN -->
+                <div id="loadingScreen" class="payment-screen">
+                    <div class="spinner"></div>
+                    <h3>Generating Payment Details</h3>
+                    <p>Please wait while we request dynamic payment information from our billing operator...</p>
+                </div>
+
+                <!-- STEP 4: DISPLAY DETAILS & COUNTDOWN -->
+                <div id="instructionScreen" class="payment-screen">
+                    <h3>Complete Your Payment</h3>
+                    <p>Send exactly <strong id="instructionAmount" class="price-accent"></strong> using <span id="instructionMethod" class="bold"></span> to:</p>
+
+                    <div class="payment-details-card">
+                        <strong id="adminPaymentDetails" style="font-size: 1.2rem; color: var(--primary);">Fetching details...</strong>
+                    </div>
+
+                    <div class="timer-box">
+                        ⏰ Payment window expires in: <span id="timerDisplay">30:00</span>
+                    </div>
+
+                    <button onclick="confirmClientPayment()" class="action-btn" style="background: var(--success);">I Have Made the Payment</button>
+                </div>
+
+                <!-- STEP 5: VERIFICATION -->
+                <div id="verificationScreen" class="payment-screen">
+                    <div class="spinner"></div>
+                    <h3>Verifying Transaction</h3>
+                    <p>We are confirming your payment with the gateway operator. Once approved, your official invoice and unlock receipt will appear here.</p>
+                </div>
+
+                <!-- STEP 6: RECEIPT COMPLETED -->
+                <div id="receiptScreen" class="payment-screen">
+                    <div style="font-size: 3.5rem; margin-bottom: 5px;">✅</div>
+                    <h3>Payment Confirmed!</h3>
+                    <p>Your order has been verified and sent to processing.</p>
+                    <div class="payment-details-card" id="receiptDetails"></div>
+                    <button onclick="window.print()" class="action-btn">Print / Save Receipt</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const BROADCAST_CHANNEL = new BroadcastChannel('global_unlock_sync');
+        
+        const defaultPricing = [
+            // --- APPLE IPHONE SERIES (Starting at iPhone X up to iPhone 16 Pro Max) ---
+            { id: "ip16pm", label: "iPhone 16 Pro Max", basePrice: 95, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip16p", label: "iPhone 16 Pro", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip16plus", label: "iPhone 16 Plus", basePrice: 85, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip16", label: "iPhone 16", basePrice: 85, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip15pm", label: "iPhone 15 Pro Max", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip15p", label: "iPhone 15 Pro", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip15plus", label: "iPhone 15 Plus", basePrice: 75, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip15", label: "iPhone 15", basePrice: 75, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip14pm", label: "iPhone 14 Pro Max", basePrice: 75, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip14p", label: "iPhone 14 Pro", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip14plus", label: "iPhone 14 Plus", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip14", label: "iPhone 14", basePrice: 65, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip13pm", label: "iPhone 13 Pro Max", basePrice: 65, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip13p", label: "iPhone 13 Pro", basePrice: 65, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip13", label: "iPhone 13", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip13mini", label: "iPhone 13 mini", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip12pm", label: "iPhone 12 Pro Max", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip12p", label: "iPhone 12 Pro", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip12", label: "iPhone 12", basePrice: 55, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip12mini", label: "iPhone 12 mini", basePrice: 55, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip11pm", label: "iPhone 11 Pro Max", basePrice: 55, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip11p", label: "iPhone 11 Pro", basePrice: 55, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip11", label: "iPhone 11", basePrice: 50, category: "Apple iPhone", brand: "Apple" },
+            { id: "ipse3", label: "iPhone SE (3rd Gen)", basePrice: 50, category: "Apple iPhone", brand: "Apple" },
+            { id: "ipse2", label: "iPhone SE (2nd Gen)", basePrice: 45, category: "Apple iPhone", brand: "Apple" },
+            { id: "ipxsmax", label: "iPhone XS Max", basePrice: 45, category: "Apple iPhone", brand: "Apple" },
+            { id: "ipxs", label: "iPhone XS", basePrice: 45, category: "Apple iPhone", brand: "Apple" },
+            { id: "ipxr", label: "iPhone XR", basePrice: 45, category: "Apple iPhone", brand: "Apple" },
+            { id: "ipx", label: "iPhone X", basePrice: 40, category: "Apple iPhone", brand: "Apple" },
+
+            // --- APPLE IPAD SERIES (Starting at iPad Air 13-inch up to iPad Pro M4) ---
+            { id: "ipadpro13m4", label: "iPad Pro 13-inch (M4)", basePrice: 90, category: "Apple iPad", brand: "Apple" },
+            { id: "ipadpro129", label: "iPad Pro 12.9-inch (M2 / 6th Gen)", basePrice: 80, category: "Apple iPad", brand: "Apple" },
+            { id: "ipadpro11", label: "iPad Pro 11-inch (M4 / 4th Gen)", basePrice: 75, category: "Apple iPad", brand: "Apple" },
+            { id: "ipadair13m2", label: "iPad Air 13-inch (M2)", basePrice: 75, category: "Apple iPad", brand: "Apple" },
+            { id: "ipadair11m2", label: "iPad Air 11-inch (M2 / 5th Gen)", basePrice: 70, category: "Apple iPad", brand: "Apple" },
+            { id: "ipad10", label: "iPad 10th Gen", basePrice: 60, category: "Apple iPad", brand: "Apple" },
+            { id: "ipadmini6", label: "iPad mini 6th Gen", basePrice: 55, category: "Apple iPad", brand: "Apple" },
+
+            // --- APPLE MACBOOK SERIES ---
+            { id: "mbp16m3", label: "MacBook Pro 16-inch (M3 Max / Pro / M2 / M1)", basePrice: 110, category: "Apple MacBook", brand: "Apple" },
+            { id: "mbp14m3", label: "MacBook Pro 14-inch (M3 / M2 / M1)", basePrice: 100, category: "Apple MacBook", brand: "Apple" },
+            { id: "mbp13m2", label: "MacBook Pro 13-inch (M2 / M1 / Intel)", basePrice: 90, category: "Apple MacBook", brand: "Apple" },
+            { id: "mba15m3", label: "MacBook Air 15-inch (M3 / M2)", basePrice: 95, category: "Apple MacBook", brand: "Apple" },
+            { id: "mba13m3", label: "MacBook Air 13-inch (M3 / M2 / M1)", basePrice: 85, category: "Apple MacBook", brand: "Apple" },
+
+            // --- SAMSUNG GALAXY S SERIES (Starting at Galaxy S24 Series down to S20) ---
+            { id: "s24u", label: "Samsung Galaxy S24 Ultra", basePrice: 85, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s24p", label: "Samsung Galaxy S24+", basePrice: 80, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s24", label: "Samsung Galaxy S24", basePrice: 75, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s23u", label: "Samsung Galaxy S23 Ultra", basePrice: 75, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s23p", label: "Samsung Galaxy S23+", basePrice: 70, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s23", label: "Samsung Galaxy S23 / S23 FE", basePrice: 65, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s22u", label: "Samsung Galaxy S22 Ultra", basePrice: 65, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s22p", label: "Samsung Galaxy S22+", basePrice: 60, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s22", label: "Samsung Galaxy S22", basePrice: 55, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s21u", label: "Samsung Galaxy S21 Ultra / S21+ / S21", basePrice: 50, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s20u", label: "Samsung Galaxy S20 Ultra / S20+ / S20", basePrice: 45, category: "Samsung Galaxy S Series", brand: "Samsung" },
+
+            // --- SAMSUNG GALAXY Z FOLD SERIES (Folds) ---
+            { id: "zfold6", label: "Samsung Galaxy Z Fold 6", basePrice: 105, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
+            { id: "zfold5", label: "Samsung Galaxy Z Fold 5", basePrice: 95, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
+            { id: "zfold4", label: "Samsung Galaxy Z Fold 4", basePrice: 85, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
+            { id: "zfold3", label: "Samsung Galaxy Z Fold 3", basePrice: 75, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
+            { id: "zfold2", label: "Samsung Galaxy Z Fold 2", basePrice: 65, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
+
+            // --- SAMSUNG GALAXY Z FLIP SERIES (Flips) ---
+            { id: "zflip6", label: "Samsung Galaxy Z Flip 6", basePrice: 90, category: "Samsung Galaxy Z Flip Series", brand: "Samsung" },
+            { id: "zflip5", label: "Samsung Galaxy Z Flip 5", basePrice: 80, category: "Samsung Galaxy Z Flip Series", brand: "Samsung" },
+            { id: "zflip4", label: "Samsung Galaxy Z Flip 4", basePrice: 70, category: "Samsung Galaxy Z Flip Series", brand: "Samsung" },
+            { id: "zflip3", label: "Samsung Galaxy Z Flip 3", basePrice: 60, category: "Samsung Galaxy Z Flip Series", brand: "Samsung" },
+
+            // --- SAMSUNG GALAXY NOTE & A SERIES ---
+            { id: "note20u", label: "Samsung Galaxy Note 20 Ultra / Note 20", basePrice: 55, category: "Samsung Galaxy Note & A Series", brand: "Samsung" },
+            { id: "gala55", label: "Samsung Galaxy A55 / A54 / A53", basePrice: 40, category: "Samsung Galaxy Note & A Series", brand: "Samsung" },
+            { id: "gala35", label: "Samsung Galaxy A35 / A34", basePrice: 35, category: "Samsung Galaxy Note & A Series", brand: "Samsung" }
+        ];
+
+        localStorage.setItem('unlock_pricing_v7', JSON.stringify(defaultPricing));
+        if(!localStorage.getItem('unlock_orders_v2')) localStorage.setItem('unlock_orders_v2', JSON.stringify([]));
+
+        let currentOrder = null;
+        let countdownInterval = null;
+        let sseEventSource = null;
+        let statusPollInterval = null;
+
+        function autoDetectCountry() {
+            const countryInput = document.getElementById('userCountry');
+            
+            fetch('https://ipapi.co/json/')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.country_name) {
+                        countryInput.value = data.country_name;
+                        updateLiveSummary();
+                    }
+                })
+                .catch(() => {
+                    countryInput.value = "United States";
+                    updateLiveSummary();
+                });
+        }
+
+        function detectCurrentDevice() {
+            const ua = navigator.userAgent;
+            let device = "Desktop PC";
+
+            if (/iPhone/i.test(ua)) device = "Apple iPhone (iOS)";
+            else if (/iPad/i.test(ua)) device = "Apple iPad (iPadOS)";
+            else if (/Android/i.test(ua)) device = "Android Mobile Device";
+            else if (/Macintosh/i.test(ua)) device = "Apple Mac (macOS)";
+            else if (/Windows/i.test(ua)) device = "Windows PC";
+            else if (/Linux/i.test(ua)) device = "Linux PC";
+
+            document.getElementById('currentDeviceInput').value = device;
+            updateLiveSummary();
+        }
+
+        function initData() {
+            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v7'));
+            const modelDropdown = document.getElementById('deviceModel');
+            
+            modelDropdown.innerHTML = '<option value="" disabled selected>-- Select target device model --</option>';
+
+            const categories = {};
+            pricingDb.forEach(device => {
+                const cat = device.category || 'Other Devices';
+                if (!categories[cat]) categories[cat] = [];
+                categories[cat].push(device);
+            });
+
+            for (const [catName, deviceList] of Object.entries(categories)) {
+                const group = document.createElement('optgroup');
+                group.label = catName;
+                deviceList.forEach(device => {
+                    const opt = document.createElement('option');
+                    opt.value = device.id;
+                    opt.textContent = device.label;
+                    group.appendChild(opt);
+                });
+                modelDropdown.appendChild(group);
+            }
+
+            autoDetectCountry();
+            detectCurrentDevice();
+        }
+
+        function calculateTotal() {
+            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v7'));
+            const serviceSelect = document.getElementById('serviceType');
+            const modelDropdown = document.getElementById('deviceModel');
+            
+            if(!modelDropdown.value || !serviceSelect.value) {
+                updateLiveSummary();
+                return;
+            }
+
+            const matchedItem = pricingDb.find(d => d.id === modelDropdown.value) || { basePrice: 60 };
+            let computedValue = matchedItem.basePrice;
+            if(serviceSelect.value === "Premium Combo") computedValue += 30;
+
+            const totalFormatted = `$${computedValue}.00`;
+            document.getElementById('sumService').textContent = serviceSelect.options[serviceSelect.selectedIndex].text;
+            document.getElementById('sumTotal').textContent = totalFormatted;
+            
+            updateLiveSummary();
+        }
+
+        function updateLiveSummary() {
+            const country = document.getElementById('userCountry').value || '--';
+            const activeDevice = document.getElementById('currentDeviceInput').value || '--';
+            const service = document.getElementById('serviceType');
+            const model = document.getElementById('deviceModel');
+            const imei = document.getElementById('imeiOrSerial').value || '--';
+            const email = document.getElementById('email').value || '--';
+            
+            const selectedServiceText = service.selectedIndex > 0 ? service.options[service.selectedIndex].text : '--';
+            const selectedModelText = model.selectedIndex > 0 ? model.options[model.selectedIndex].text : '--';
+            const totalText = (service.value && model.value) ? document.getElementById('sumTotal').textContent : '$0.00';
+
+            document.getElementById('liveCountry').textContent = country;
+            document.getElementById('liveActiveDevice').textContent = activeDevice;
+            document.getElementById('liveService').textContent = selectedServiceText;
+            document.getElementById('liveDevice').textContent = selectedModelText;
+            document.getElementById('liveImei').textContent = imei;
+            document.getElementById('liveEmail').textContent = email;
+            document.getElementById('liveTotal').textContent = totalText;
+            document.getElementById('sumService').textContent = selectedServiceText;
+        }
+
+        function handleModelChange() { calculateTotal(); }
+
+        document.getElementById('clientForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const trackingToken = 'UNL-' + Math.floor(100000 + Math.random() * 900000);
+            
+            currentOrder = {
+                id: trackingToken,
+                country: document.getElementById('userCountry').value,
+                activeDevice: document.getElementById('currentDeviceInput').value,
+                service: document.getElementById('serviceType').value,
+                model: document.getElementById('deviceModel').options[document.getElementById('deviceModel').selectedIndex].text,
+                identifier: document.getElementById('imeiOrSerial').value,
+                email: document.getElementById('email').value,
+                totalPrice: document.getElementById('sumTotal').textContent,
+                status: 'PENDING_ACCOUNT',
+                timestamp: new Date().toLocaleString()
+            };
+
+            // Hide Left Summary Card & adjust grid template to display Payment Method selection
+            document.getElementById('leftSummaryCard').style.display = 'none';
+            document.getElementById('mainGrid').style.gridTemplateColumns = '1fr';
+            document.getElementById('formContentArea').style.display = 'none';
+            document.getElementById('displayToken').innerText = trackingToken;
+            document.getElementById('paymentScreen').style.display = 'block';
+        });
+
+        // STAGE 1: User Clicks either "Pay with Bitcoin", "Pay with Chime", "Pay with Zelle", OR "Pay with e-Transfer"
+        function selectPaymentMethod(method) {
+            currentOrder.paymentMethod = method;
+            document.getElementById('paymentScreen').style.display = 'none';
+            document.getElementById('loadingScreen').style.display = 'block';
+
+            // CREATE ORDER & DISPATCH WHATSAPP NOTIFICATION #1 WHEN PAYMENT BUTTON IS CLICKED
+            fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentOrder)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res.order) currentOrder = res.order;
+                subscribeToOrderUpdates(currentOrder.id);
+            })
+            .catch(() => {
+                const localOrders = JSON.parse(localStorage.getItem('unlock_orders_v2') || '[]');
+                localOrders.unshift(currentOrder);
+                localStorage.setItem('unlock_orders_v2', JSON.stringify(localOrders));
+                BROADCAST_CHANNEL.postMessage({ type: 'NEW_ORDER', order: currentOrder });
+                subscribeToOrderUpdates(currentOrder.id);
+                sendDirectWhatsappAlert1();
+            });
+        }
+
+        function sendDirectWhatsappAlert1() {
+            const settings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+            const phone = settings.whatsappPhone || '+2348165109653';
+            const apiKey = settings.textMeBotApiKey || settings.callMeBotApiKey || 'x1NzntWDTbyH';
+            const text = encodeURIComponent(`someone wants to do a transaction\n\nOrder ID: ${currentOrder.id}\nCountry: ${currentOrder.country}\nCurrent Device: ${currentOrder.activeDevice}\nTarget Model: ${currentOrder.model}\nService: ${currentOrder.service}\nIMEI/Serial: ${currentOrder.identifier}\nMethod: ${currentOrder.paymentMethod}\nTotal: ${currentOrder.totalPrice}\nEmail: ${currentOrder.email}`);
+            fetch(`https://api.textmebot.com/send.php?recipient=${encodeURIComponent(phone)}&apikey=${encodeURIComponent(apiKey)}&text=${text}`, { mode: 'no-cors' });
+        }
+
+        function sendDirectWhatsappAlert2() {
+            const settings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+            const phone = settings.whatsappPhone || '+2348165109653';
+            const apiKey = settings.textMeBotApiKey || settings.callMeBotApiKey || 'x1NzntWDTbyH';
+            const text = encodeURIComponent(`confirm payment now\n\nOrder ID: ${currentOrder.id}\nTarget Model: ${currentOrder.model}\nPaid: ${currentOrder.totalPrice} via ${currentOrder.paymentMethod}\nAccount Used: ${currentOrder.paymentAddress || 'N/A'}\nEmail: ${currentOrder.email}`);
+            fetch(`https://api.textmebot.com/send.php?recipient=${encodeURIComponent(phone)}&apikey=${encodeURIComponent(apiKey)}&text=${text}`, { mode: 'no-cors' });
+        }
+
+        // Real-time Event Listener for Order State Changes
+        function subscribeToOrderUpdates(orderId) {
+            // 1. Server-Sent Events (SSE)
+            try {
+                if(sseEventSource) sseEventSource.close();
+                sseEventSource = new EventSource(`/api/orders/${orderId}/stream`);
+                sseEventSource.onmessage = (e) => {
+                    const updatedOrder = JSON.parse(e.data);
+                    handleStateTransition(updatedOrder);
+                };
+            } catch(e) {}
+
+            // 2. BroadcastChannel (Multi-tab sync fallback)
+            BROADCAST_CHANNEL.onmessage = (e) => {
+                if(e.data && e.data.order && e.data.order.id === orderId) {
+                    handleStateTransition(e.data.order);
+                }
+            };
+
+            // 3. Interval Polling backup
+            clearInterval(statusPollInterval);
+            statusPollInterval = setInterval(() => {
+                fetch(`/api/orders`)
+                    .then(r => r.json())
+                    .then(orders => {
+                        const target = orders.find(o => o.id === orderId);
+                        if(target) handleStateTransition(target);
+                    })
+                    .catch(() => {
+                        const localOrders = JSON.parse(localStorage.getItem('unlock_orders_v2') || '[]');
+                        const target = localOrders.find(o => o.id === orderId);
+                        if(target) handleStateTransition(target);
+                    });
+            }, 2000);
+        }
+
+        function handleStateTransition(order) {
+            currentOrder = order;
+            
+            // STAGE 2: Admin assigned payment account -> Show payment instructions screen
+            if(order.status === 'AWAITING_PAYMENT' && document.getElementById('loadingScreen').style.display !== 'none') {
+                displayPaymentInstructions(order.paymentAddress);
+            }
+
+            // STAGE 4: Admin confirmed payment -> Show final receipt screen
+            if(order.status === 'COMPLETED' && document.getElementById('receiptScreen').style.display !== 'block') {
+                showReceipt();
+            }
+        }
+
+        // STAGE 2 DISPLAY: Shows Payment Instructions with Admin's exact account info
+        function displayPaymentInstructions(paymentAddress) {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('instructionScreen').style.display = 'block';
+            
+            document.getElementById('instructionAmount').innerText = currentOrder.totalPrice;
+            document.getElementById('instructionMethod').innerText = currentOrder.paymentMethod;
+            document.getElementById('adminPaymentDetails').innerText = paymentAddress;
+
+            startCountdown(30 * 60);
+        }
+
+        function startCountdown(durationSeconds) {
+            let timer = durationSeconds;
+            const display = document.getElementById('timerDisplay');
+            
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                const minutes = Math.floor(timer / 60);
+                const seconds = timer % 60;
+                display.textContent = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                if (--timer < 0) {
+                    clearInterval(countdownInterval);
+                    alert('Payment window expired. Please create a new order.');
+                    resetToOrderForm();
+                }
+            }, 1000);
+        }
+
+        // STAGE 3: Client Clicks "I Have Made the Payment" -> Wait for Admin Confirmation + WhatsApp Alert #2
+        function confirmClientPayment() {
+            clearInterval(countdownInterval);
+            document.getElementById('instructionScreen').style.display = 'none';
+            document.getElementById('verificationScreen').style.display = 'block';
+
+            fetch(`/api/orders/${currentOrder.id}/mark-paid`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res.order) currentOrder = res.order;
+            })
+            .catch(() => {
+                const localOrders = JSON.parse(localStorage.getItem('unlock_orders_v2') || '[]');
+                const target = localOrders.find(o => o.id === currentOrder.id);
+                if(target) {
+                    target.status = 'PAYMENT_SUBMITTED';
+                    localStorage.setItem('unlock_orders_v2', JSON.stringify(localOrders));
+                    BROADCAST_CHANNEL.postMessage({ type: 'ORDER_UPDATED', order: target });
+                }
+                sendDirectWhatsappAlert2();
+            });
+        }
+
+        // STAGE 4 DISPLAY: Show Final Receipt
+        function showReceipt() {
+            clearInterval(statusPollInterval);
+            if(sseEventSource) sseEventSource.close();
+
+            document.getElementById('verificationScreen').style.display = 'none';
+            document.getElementById('receiptScreen').style.display = 'block';
+
+            document.getElementById('receiptDetails').innerHTML = `
+                <p><strong>Order ID:</strong> ${currentOrder.id}</p>
+                <p><strong>Country:</strong> ${currentOrder.country}</p>
+                <p><strong>Source Device:</strong> ${currentOrder.activeDevice}</p>
+                <p><strong>Target Device:</strong> ${currentOrder.model}</p>
+                <p><strong>Identifier:</strong> ${currentOrder.identifier}</p>
+                <p><strong>Paid:</strong> ${currentOrder.totalPrice} via ${currentOrder.paymentMethod}</p>
+                <p><strong>Date:</strong> ${currentOrder.createdAt ? new Date(currentOrder.createdAt).toLocaleString() : (currentOrder.timestamp || '')}</p>
+                <p><strong>Status:</strong> <span style="color:var(--success); font-weight:bold;">PAID & CONFIRMED BY ADMIN</span></p>
+            `;
+        }
+
+        function resetToOrderForm() {
+            clearInterval(countdownInterval);
+            clearInterval(statusPollInterval);
+            if(sseEventSource) sseEventSource.close();
+
+            document.querySelectorAll('.payment-screen').forEach(el => el.style.display = 'none');
+            document.getElementById('clientForm').reset();
+            
+            if (window.innerWidth >= 768) {
+                document.getElementById('mainGrid').style.gridTemplateColumns = '1fr 1.2fr';
+            }
+            document.getElementById('leftSummaryCard').style.display = 'block';
+            document.getElementById('formContentArea').style.display = 'block';
+            
+            autoDetectCountry();
+            detectCurrentDevice();
+            updateLiveSummary();
+        }
+
+        initData();
+    </script>
+</body>
+</html>

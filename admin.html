@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Unlock | Admin Command Center</title>
+    <style>
+        :root {
+            --primary: #0071e3;
+            --primary-hover: #0077ed;
+            --bg: #0f1117;
+            --card-bg: #1a1d26;
+            --card-border: #2a2e3d;
+            --text: #f0f2f5;
+            --text-muted: #8b92a5;
+            --success: #34c759;
+            --warning: #ff9f0a;
+            --danger: #ff453a;
+            --purple: #af52de;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; padding-bottom: 60px; }
+
+        .header { background: rgba(26, 29, 38, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100; padding: 16px 0; }
+        .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .logo span { color: var(--primary); }
+        .badge-live { background: rgba(52, 199, 89, 0.15); color: var(--success); border: 1px solid var(--success); font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
+        .dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+        .wrapper { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        
+        .grid-dashboard { display: grid; grid-template-columns: 1fr; gap: 25px; }
+        @media(min-width: 992px) { .grid-dashboard { grid-template-columns: 340px 1fr; } }
+
+        .card { background: var(--card-bg); border-radius: 16px; padding: 24px; border: 1px solid var(--card-border); }
+        h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; }
+
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; }
+        input[type="text"], input[type="password"], select { width: 100%; padding: 12px; border: 1px solid var(--card-border); border-radius: 8px; font-size: 0.95rem; background: #12141c; color: var(--text); outline: none; transition: 0.2s; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2); }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px 18px; border: none; border-radius: 10px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { opacity: 0.9; }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-secondary { background: #2a2e3d; color: var(--text); }
+        .btn-secondary:hover { background: #353a4d; }
+        .btn-sm { padding: 8px 14px; font-size: 0.85rem; width: auto; }
+
+        .help-box { background: rgba(0, 113, 227, 0.1); border: 1px solid rgba(0, 113, 227, 0.3); border-radius: 10px; padding: 12px; font-size: 0.85rem; color: #a1c9f7; margin-top: 15px; line-height: 1.4; }
+
+        /* Order Cards styling */
+        .filters { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 8px; }
+        .filter-btn { background: #2a2e3d; border: none; color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .filter-btn.active { background: var(--primary); color: white; }
+
+        .order-card { background: #141720; border: 1px solid var(--card-border); border-radius: 14px; padding: 20px; margin-bottom: 20px; position: relative; transition: 0.2s; }
+        .order-card:hover { border-color: #3b4256; }
+        .order-card.status-pending { border-left: 5px solid var(--warning); }
+        .order-card.status-awaiting { border-left: 5px solid var(--primary); }
+        .order-card.status-submitted { border-left: 5px solid var(--purple); animation: highlightGlow 2s infinite; }
+        .order-card.status-completed { border-left: 5px solid var(--success); }
+        @keyframes highlightGlow { 0% { box-shadow: 0 0 0 0 rgba(175, 82, 222, 0.4); } 50% { box-shadow: 0 0 15px 0 rgba(175, 82, 222, 0.4); } 100% { box-shadow: 0 0 0 0 rgba(175, 82, 222, 0.4); } }
+
+        .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed var(--card-border); }
+        .order-id { font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .order-time { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .status-badge { padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .badge-pending { background: rgba(255, 159, 10, 0.15); color: var(--warning); border: 1px solid var(--warning); }
+        .badge-awaiting { background: rgba(0, 113, 227, 0.15); color: var(--primary); border: 1px solid var(--primary); }
+        .badge-submitted { background: rgba(175, 82, 222, 0.15); color: var(--purple); border: 1px solid var(--purple); }
+        .badge-completed { background: rgba(52, 199, 89, 0.15); color: var(--success); border: 1px solid var(--success); }
+
+        .order-details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 18px; font-size: 0.9rem; }
+        .detail-item span:first-child { display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .detail-item span:last-child { font-weight: 600; color: var(--text); }
+
+        .action-box { background: #1c202c; border: 1px solid #2e3346; border-radius: 12px; padding: 16px; margin-top: 15px; }
+        .action-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
+
+        .empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); }
+        .empty-state div { font-size: 3rem; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">🧬 Global<span>Unlock</span> Admin Portal</div>
+            <div class="badge-live">
+                <span class="dot"></span> Real-time Sync Active
+            </div>
+        </div>
+    </header>
+
+    <main class="wrapper">
+        <div class="grid-dashboard">
+            <!-- Sidebar: WhatsApp Settings & QR Code -->
+            <div class="card">
+                <h2>📲 WhatsApp Admin Connect</h2>
+                
+                <div id="botStatusBox" style="background: rgba(52, 199, 89, 0.1); border: 1px solid rgba(52, 199, 89, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 20px; font-size: 0.85rem; color: var(--success);">
+                    <strong>🟢 Baileys WhatsApp Engine:</strong> Active<br>
+                    <span>Scan QR code below to connect your WhatsApp directly!</span>
+                </div>
+
+                <div id="qrCodeDisplayBox" style="margin-bottom: 20px;">
+                    <p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">Loading QR code...</p>
+                </div>
+
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label>Admin WhatsApp Recipient Phone</label>
+                        <input type="text" id="settingPhone" value="+2348165109653" placeholder="e.g. +2348165109653">
+                    </div>
+
+                    <div class="form-group">
+                        <label>TextMeBot API Key (Fallback)</label>
+                        <input type="password" id="settingTextMeBotApiKey" value="x1NzntWDTbyH" placeholder="Enter TextMeBot API Key">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-bottom: 10px;">Save Settings</button>
+                    <button type="button" onclick="testWhatsapp()" class="btn btn-secondary btn-sm" style="width:100%;">⚡ Send Test WhatsApp Alert</button>
+                </form>
+
+                <div class="help-box" style="margin-top:20px;">
+                    <strong>📲 Live WhatsApp Admin Status:</strong><br>
+                    Once linked via QR code, your phone receives alerts and replies directly to update customer screens live!
+                </div>
+            </div>
+
+            <!-- Main Area: Live Order Queue -->
+            <div class="card">
+                <h2>📦 Live Order Queue <span id="orderCounter" style="font-size: 0.9rem; color: var(--primary);">0 Orders</span></h2>
+
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filterOrders('ALL')">All Orders</button>
+                    <button class="filter-btn" onclick="filterOrders('PENDING_ACCOUNT')">⚠️ Pending Address</button>
+                    <button class="filter-btn" onclick="filterOrders('AWAITING_PAYMENT')">⏳ Awaiting Payment</button>
+                    <button class="filter-btn" onclick="filterOrders('PAYMENT_SUBMITTED')">💰 Submitted (Review)</button>
+                    <button class="filter-btn" onclick="filterOrders('COMPLETED')">✅ Completed</button>
+                </div>
+
+                <div id="ordersContainer">
+                    <div class="empty-state">
+                        <div>📭</div>
+                        <p>No unlock orders received yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const BROADCAST_CHANNEL = new BroadcastChannel('global_unlock_sync');
+        let currentFilter = 'ALL';
+        let ordersData = [];
+        let draftInputs = {};
+
+        function playAlertSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } catch(e) {}
+        }
+
+        function loadSettings() {
+            fetch('/api/settings')
+                .then(r => r.json())
+                .then(data => {
+                    if(data.whatsappPhone) document.getElementById('settingPhone').value = data.whatsappPhone;
+                    if(data.textMeBotApiKey) document.getElementById('settingTextMeBotApiKey').value = data.textMeBotApiKey;
+
+                    const qrBox = document.getElementById('qrCodeDisplayBox');
+                    if(qrBox) {
+                        if(data.botConnected) {
+                            qrBox.innerHTML = `
+                                <div style="background:rgba(52, 199, 89, 0.15); border:1px solid var(--success); border-radius:10px; padding:15px; text-align:center; color:var(--success);">
+                                    <div style="font-size:1.5rem; margin-bottom:5px;">✅</div>
+                                    <strong>WhatsApp Bot Connected & Active!</strong><br>
+                                    <span style="font-size:0.8rem;">Your WhatsApp is ready to send and receive commands.</span>
+                                </div>
+                            `;
+                        } else if(data.botQr) {
+                            const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.botQr)}`;
+                            qrBox.innerHTML = `
+                                <div style="text-align:center; padding:14px; background:#fff; border-radius:12px; margin-top:10px;">
+                                    <p style="color:#000; font-weight:bold; font-size:0.85rem; margin-bottom:8px;">Scan with WhatsApp on your phone:</p>
+                                    <img src="${qrImgUrl}" alt="WhatsApp QR Code" style="width:190px; height:190px; border-radius:8px;">
+                                </div>
+                            `;
+                        } else {
+                            qrBox.innerHTML = `<p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">Initializing QR code...</p>`;
+                        }
+                    }
+                })
+                .catch(() => {});
+        }
+
+        document.getElementById('settingsForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('settingPhone').value.trim();
+            const apiKey = document.getElementById('settingTextMeBotApiKey').value.trim();
+
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ whatsappPhone: phone, textMeBotApiKey: apiKey })
+            })
+            .then(r => r.json())
+            .then(() => alert('Settings saved successfully!'))
+            .catch(() => alert('Settings saved!'));
+        });
+
+        function testWhatsapp() {
+            fetch('/api/test-whatsapp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: 'someone wants to do a transaction' })
+            })
+            .then(r => r.json())
+            .then(() => alert('Test WhatsApp alert sent!'))
+            .catch(() => alert('Test alert triggered!'));
+        }
+
+        document.addEventListener('input', (e) => {
+            if(e.target && e.target.id && e.target.id.startsWith('accInput_')) {
+                draftInputs[e.target.id] = e.target.value;
+            }
+        });
+
+        function fetchOrders() {
+            const activeEl = document.activeElement;
+            if (activeEl && activeEl.id && activeEl.id.startsWith('accInput_')) {
+                return;
+            }
+
+            fetch('/api/orders')
+                .then(r => r.json())
+                .then(data => {
+                    ordersData = data;
+                    renderOrders();
+                })
+                .catch(() => {
+                    ordersData = JSON.parse(localStorage.getItem('unlock_orders_v2') || '[]');
+                    renderOrders();
+                });
+        }
+
+        function filterOrders(status) {
+            currentFilter = status;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) event.target.classList.add('active');
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const activeEl = document.activeElement;
+            let activeId = null;
+            let selStart = 0;
+            let selEnd = 0;
+
+            if (activeEl && activeEl.id && activeEl.id.startsWith('accInput_')) {
+                activeId = activeEl.id;
+                selStart = activeEl.selectionStart || 0;
+                selEnd = activeEl.selectionEnd || 0;
+                draftInputs[activeId] = activeEl.value;
+            }
+
+            const container = document.getElementById('ordersContainer');
+            document.getElementById('orderCounter').textContent = `${ordersData.length} Orders`;
+
+            let filtered = ordersData;
+            if(currentFilter !== 'ALL') {
+                filtered = ordersData.filter(o => o.status === currentFilter);
+            }
+
+            if(filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div>📭</div>
+                        <p>No orders matching filter "${currentFilter}".</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(order => {
+                let statusBadge = '';
+                let cardClass = '';
+                let actionHtml = '';
+
+                const inputId = `accInput_${order.id}`;
+                const currentValue = draftInputs[inputId] !== undefined ? draftInputs[inputId] : (order.paymentAddress || '');
+
+                if(order.status === 'PENDING_ACCOUNT') {
+                    cardClass = 'status-pending';
+                    statusBadge = `<span class="status-badge badge-pending">⚠️ Action Needed: Input Account</span>`;
+                    actionHtml = `
+                        <div class="action-box">
+                            <p><strong>Step 1:</strong> Enter payment account (${order.paymentMethod || 'Selected'}) for this client:</p>
+                            <div style="display:flex; gap:10px;">
+                                <input type="text" id="${inputId}" placeholder="e.g. Zelle: pay@email.com / BTC Address / Chime Tag" value="${currentValue}">
+                                <button onclick="assignPaymentAccount('${order.id}')" class="btn btn-warning btn-sm" style="white-space:nowrap;">Assign & Update Client</button>
+                            </div>
+                        </div>
+                    `;
+                } else if(order.status === 'AWAITING_PAYMENT') {
+                    cardClass = 'status-awaiting';
+                    statusBadge = `<span class="status-badge badge-awaiting">⏳ Client Reviewing Payment Info</span>`;
+                    actionHtml = `
+                        <div class="action-box">
+                            <p>Assigned Account: <strong style="color:var(--primary);">${order.paymentAddress}</strong></p>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0;">Client is currently viewing payment instructions and preparing transfer.</p>
+                        </div>
+                    `;
+                } else if(order.status === 'PAYMENT_SUBMITTED') {
+                    cardClass = 'status-submitted';
+                    statusBadge = `<span class="status-badge badge-submitted">💰 Client Claims Paid (Confirm!)</span>`;
+                    actionHtml = `
+                        <div class="action-box" style="border-color: var(--purple); background: rgba(175, 82, 222, 0.1);">
+                            <p style="color: #e2bbfd;"><strong>Client clicked "I Have Made the Payment":</strong></p>
+                            <p>Paid Amount: <strong>${order.totalPrice}</strong> via <strong>${order.paymentMethod}</strong> (${order.paymentAddress})</p>
+                            <button onclick="confirmOrder('${order.id}')" class="btn btn-success" style="margin-top:10px;">✅ Confirm Payment & Release Receipt</button>
+                        </div>
+                    `;
+                } else if(order.status === 'COMPLETED') {
+                    cardClass = 'status-completed';
+                    statusBadge = `<span class="status-badge badge-completed">✅ Confirmed & Completed</span>`;
+                    actionHtml = `
+                        <div class="action-box" style="border-color: var(--success); background: rgba(52, 199, 89, 0.08);">
+                            <p style="color: var(--success); margin-bottom:0;">Order verified. Receipt released to client.</p>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="order-card ${cardClass}" id="card_${order.id}">
+                        <div class="order-header">
+                            <div>
+                                <div class="order-id">
+                                    <span>${order.id}</span>
+                                    <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;">(${order.country || 'N/A'})</span>
+                                </div>
+                                <div class="order-time">${order.createdAt ? new Date(order.createdAt).toLocaleString() : (order.timestamp || '')}</div>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+
+                        <div class="order-details-grid">
+                            <div class="detail-item">
+                                <span>Target Model</span>
+                                <span>${order.model}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Service</span>
+                                <span>${order.service}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>IMEI / Serial</span>
+                                <span style="font-family:monospace;">${order.identifier}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Total Amount</span>
+                                <span style="color:var(--primary); font-weight:bold;">${order.totalPrice}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Payment Method</span>
+                                <span>${order.paymentMethod}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Client Email</span>
+                                <span>${order.email}</span>
+                            </div>
+                        </div>
+
+                        ${actionHtml}
+
+                        <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+                            <button onclick="deleteOrder('${order.id}')" style="background:none; border:none; color:var(--danger); font-size:0.75rem; cursor:pointer;">Delete Order</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (activeId) {
+                const restoredEl = document.getElementById(activeId);
+                if (restoredEl) {
+                    restoredEl.focus();
+                    try { restoredEl.setSelectionRange(selStart, selEnd); } catch(e){}
+                }
+            }
+        }
+
+        function assignPaymentAccount(orderId) {
+            const input = document.getElementById(`accInput_${orderId}`);
+            if(!input || !input.value.trim()) {
+                alert('Please type the account address / details before submitting.');
+                return;
+            }
+
+            const paymentAddress = input.value.trim();
+
+            fetch(`/api/orders/${orderId}/assign-payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentAddress })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res.success) {
+                    delete draftInputs[`accInput_${orderId}`];
+                    fetchOrders();
+                }
+            })
+            .catch(() => {});
+        }
+
+        function confirmOrder(orderId) {
+            if(!confirm(`Confirm payment for order ${orderId}? This will release the final receipt to the customer.`)) return;
+
+            fetch(`/api/orders/${orderId}/confirm`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res.success) {
+                    fetchOrders();
+                }
+            })
+            .catch(() => {});
+        }
+
+        function deleteOrder(orderId) {
+            if(!confirm(`Delete order ${orderId}?`)) return;
+
+            fetch(`/api/orders/${orderId}`, { method: 'DELETE' })
+            .then(() => fetchOrders())
+            .catch(() => {});
+        }
+
+        function connectSSE() {
+            try {
+                const eventSource = new EventSource('/api/orders/ADMIN_ALL/stream');
+                eventSource.onmessage = (e) => {
+                    playAlertSound();
+                    fetchOrders();
+                };
+            } catch(e) {}
+        }
+
+        BROADCAST_CHANNEL.onmessage = (e) => {
+            playAlertSound();
+            fetchOrders();
+        };
+
+        loadSettings();
+        fetchOrders();
+        connectSSE();
+        setInterval(loadSettings, 3000);
+        setInterval(fetchOrders, 3000);
+    </script>
+</body>
+</html>

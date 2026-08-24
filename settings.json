@@ -1,0 +1,7 @@
+{
+  "whatsappPhone": "+2348165109653",
+  "textMeBotApiKey": "x1NzntWDTbyH",
+  "callMeBotApiKey": "",
+  "provider": "textmebot",
+  "autoSendWhatsapp": true
+}
