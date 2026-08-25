@@ -3,14 +3,30 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const url = require('url');
+const os = require('os');
+const QRCode = require('qrcode');
 
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'orders_db.json');
 const SETTINGS_FILE = path.join(__dirname, 'settings.json');
 
+function getLocalIpAddress() {
+    const interfaces = os.networkInterfaces();
+    for (const devName in interfaces) {
+        const iface = interfaces[devName];
+        for (let i = 0; i < iface.length; i++) {
+            const alias = iface[i];
+            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+                return alias.address;
+            }
+        }
+    }
+    return 'localhost';
+}
+
 // Default Settings
 let settings = {
-    whatsappPhone: '+2348165109653',
+    whatsappPhone: '+2348160491143',
     textMeBotApiKey: 'x1NzntWDTbyH',
     callMeBotApiKey: '',
     provider: 'textmebot',
@@ -91,6 +107,17 @@ const orderManager = {
             order.updatedAt = new Date().toISOString();
             broadcastOrderUpdate(order);
             console.log(`[Order Manager Success] Order ${orderId} marked COMPLETED!`);
+            return order;
+        }
+        return null;
+    },
+    rejectOrder: (orderId) => {
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+            order.status = 'PAYMENT_FAILED';
+            order.updatedAt = new Date().toISOString();
+            broadcastOrderUpdate(order);
+            console.log(`[Order Manager Success] Order ${orderId} marked PAYMENT_FAILED!`);
             return order;
         }
         return null;
@@ -213,6 +240,104 @@ const requestHandler = (req, res) => {
         return sendJSON(orders);
     }
 
+    // --- PWA Web App Manifest ---
+    if (pathname === '/manifest.json' && method === 'GET') {
+        const manifest = {
+            name: "Global Unlock Admin Command Center",
+            short_name: "UnlockAdmin",
+            description: "Mobile Admin Command Center for Global Device Unlock",
+            start_url: "/admin",
+            display: "standalone",
+            orientation: "portrait",
+            background_color: "#0f1117",
+            theme_color: "#0f1117",
+            icons: [
+                {
+                    src: "/api/app-icon",
+                    sizes: "192x192",
+                    type: "image/png",
+                    purpose: "any maskable"
+                },
+                {
+                    src: "/api/app-icon",
+                    sizes: "512x512",
+                    type: "image/png",
+                    purpose: "any maskable"
+                }
+            ]
+        };
+        res.writeHead(200, { 'Content-Type': 'application/manifest+json' });
+        res.end(JSON.stringify(manifest, null, 2));
+        return;
+    }
+
+    // --- Mobile Access Info Endpoint (LAN IP & Direct URLs) ---
+    if (pathname === '/api/mobile-info' && method === 'GET') {
+        const localIp = getLocalIpAddress();
+        return sendJSON({
+            localIp,
+            port: PORT,
+            mobileAdminUrl: `http://${localIp}:${PORT}/admin`,
+            mobileClientUrl: `http://${localIp}:${PORT}`
+        });
+    }
+
+    // --- QR Code to Open Admin on Mobile Device (Camera Scan) ---
+    if (pathname === '/api/mobile-admin-qr' && method === 'GET') {
+        const localIp = getLocalIpAddress();
+        const mobileAdminUrl = `http://${localIp}:${PORT}/admin`;
+        QRCode.toBuffer(mobileAdminUrl, { type: 'png', width: 300, margin: 2 }, (err, buffer) => {
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Mobile QR generation failed' }));
+                return;
+            }
+            res.writeHead(200, {
+                'Content-Type': 'image/png',
+                'Cache-Control': 'no-cache, no-store'
+            });
+            res.end(buffer);
+        });
+        return;
+    }
+
+    // --- App Icon Endpoint ---
+    if (pathname === '/api/app-icon' && method === 'GET') {
+        const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="120" fill="#0f1117"/>
+            <rect x="32" y="32" width="448" height="448" rx="100" fill="#1a1d26" stroke="#2a2e3d" stroke-width="8"/>
+            <circle cx="256" cy="256" r="140" fill="none" stroke="#0071e3" stroke-width="24"/>
+            <path d="M256 160v192M160 256h192" stroke="#34c759" stroke-width="24" stroke-linecap="round"/>
+            <circle cx="256" cy="256" r="40" fill="#0071e3"/>
+        </svg>`;
+        res.writeHead(200, { 'Content-Type': 'image/svg+xml' });
+        res.end(iconSvg);
+        return;
+    }
+
+    // --- QR Code Image Endpoint (serves local PNG, no external API) ---
+    if (pathname === '/api/qr-image' && method === 'GET') {
+        const qrData = whatsappBot ? whatsappBot.qrCodeData : null;
+        if (!qrData) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'No QR code available' }));
+            return;
+        }
+        QRCode.toBuffer(qrData, { type: 'png', width: 300, margin: 2 }, (err, buffer) => {
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'QR generation failed' }));
+                return;
+            }
+            res.writeHead(200, {
+                'Content-Type': 'image/png',
+                'Cache-Control': 'no-cache, no-store'
+            });
+            res.end(buffer);
+        });
+        return;
+    }
+
     if (pathname === '/api/settings' && method === 'GET') {
         return sendJSON({
             ...settings,
@@ -252,46 +377,63 @@ const requestHandler = (req, res) => {
         });
     }
 
-    // CREATE ORDER (STAGE 1: TRIGGERED WHEN USER CLICKS PAYMENT METHOD BUTTON)
+    // CREATE OR RETRY ORDER (STAGE 1: TRIGGERED WHEN USER CLICKS PAYMENT METHOD BUTTON)
     if (pathname === '/api/orders' && method === 'POST') {
         return parseBody(orderData => {
-            const newOrder = {
-                id: orderData.id || ('UNL-' + Math.floor(100000 + Math.random() * 900000)),
-                country: orderData.country || 'Unknown',
-                activeDevice: orderData.activeDevice || 'Unknown',
-                service: orderData.service || 'Unknown',
-                model: orderData.model || 'Unknown',
-                identifier: orderData.identifier || 'Unknown',
-                email: orderData.email || 'Unknown',
-                totalPrice: orderData.totalPrice || '$0.00',
-                paymentMethod: orderData.paymentMethod || 'Bitcoin',
-                paymentAddress: '',
-                status: 'PENDING_ACCOUNT',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
+            const orderId = orderData.id || ('UNL-' + Math.floor(100000 + Math.random() * 900000));
+            let targetOrder = orders.find(o => o.id === orderId);
 
-            orders.unshift(newOrder);
-            broadcastOrderUpdate(newOrder);
+            if (targetOrder) {
+                targetOrder.country = orderData.country || targetOrder.country;
+                targetOrder.activeDevice = orderData.activeDevice || targetOrder.activeDevice;
+                targetOrder.service = orderData.service || targetOrder.service;
+                targetOrder.model = orderData.model || targetOrder.model;
+                targetOrder.identifier = orderData.identifier || targetOrder.identifier;
+                targetOrder.email = orderData.email || targetOrder.email;
+                targetOrder.totalPrice = orderData.totalPrice || targetOrder.totalPrice;
+                targetOrder.paymentMethod = orderData.paymentMethod || targetOrder.paymentMethod;
+                targetOrder.paymentAddress = '';
+                targetOrder.status = 'PENDING_ACCOUNT';
+                targetOrder.updatedAt = new Date().toISOString();
+            } else {
+                targetOrder = {
+                    id: orderId,
+                    country: orderData.country || 'Unknown',
+                    activeDevice: orderData.activeDevice || 'Unknown',
+                    service: orderData.service || 'Unknown',
+                    model: orderData.model || 'Unknown',
+                    identifier: orderData.identifier || 'Unknown',
+                    email: orderData.email || 'Unknown',
+                    totalPrice: orderData.totalPrice || '$0.00',
+                    paymentMethod: orderData.paymentMethod || 'Bitcoin',
+                    paymentAddress: '',
+                    status: 'PENDING_ACCOUNT',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                orders.unshift(targetOrder);
+            }
+
+            broadcastOrderUpdate(targetOrder);
 
             // First Notification: Sent when user selects payment method button
             const alertText = `someone wants to do a transaction\n\n` +
-                `Order ID: ${newOrder.id}\n` +
-                `Country: ${newOrder.country}\n` +
-                `Current Device: ${newOrder.activeDevice}\n` +
-                `Target Model: ${newOrder.model}\n` +
-                `Service: ${newOrder.service}\n` +
-                `IMEI/Serial: ${newOrder.identifier}\n` +
-                `Payment Method: ${newOrder.paymentMethod}\n` +
-                `Total Amount: ${newOrder.totalPrice}\n` +
-                `Customer Email: ${newOrder.email}\n\n` +
-                `👉 REPLY ON WHATSAPP WITH PAYMENT DETAILS (e.g. pay@zelle.com or ${newOrder.id} pay@zelle.com)`;
+                `Order ID: ${targetOrder.id}\n` +
+                `Country: ${targetOrder.country}\n` +
+                `Current Device: ${targetOrder.activeDevice}\n` +
+                `Target Model: ${targetOrder.model}\n` +
+                `Service: ${targetOrder.service}\n` +
+                `IMEI/Serial: ${targetOrder.identifier}\n` +
+                `Payment Method: ${targetOrder.paymentMethod}\n` +
+                `Total Amount: ${targetOrder.totalPrice}\n` +
+                `Customer Email: ${targetOrder.email}\n\n` +
+                `👉 REPLY ON WHATSAPP WITH PAYMENT DETAILS (e.g. pay@zelle.com or ${targetOrder.id} pay@zelle.com)`;
 
             if (settings.autoSendWhatsapp) {
                 sendWhatsappNotification(alertText);
             }
 
-            sendJSON({ success: true, order: newOrder });
+            sendJSON({ success: true, order: targetOrder });
         });
     }
 
@@ -324,7 +466,7 @@ const requestHandler = (req, res) => {
                 `Paid: ${order.totalPrice} via ${order.paymentMethod}\n` +
                 `Account Used: ${order.paymentAddress}\n` +
                 `Customer Email: ${order.email}\n\n` +
-                `👉 REPLY "ok" OR "confirm" ON WHATSAPP TO APPROVE RECEIPT!`;
+                `👉 REPLY "ok" OR "confirm" TO APPROVE, OR "no" TO REJECT!`;
 
             if (settings.autoSendWhatsapp) {
                 sendWhatsappNotification(alertText);
@@ -344,6 +486,29 @@ const requestHandler = (req, res) => {
         });
     }
 
+    // ADMIN REJECT PAYMENT (STAGE -> PAYMENT_FAILED)
+    if (pathname.match(/\/api\/orders\/[^\/]+\/reject$/) && method === 'POST') {
+        const orderId = pathname.split('/')[3];
+        return parseBody(body => {
+            const order = orderManager.rejectOrder(orderId);
+            if (!order) return sendJSON({ error: 'Order not found' }, 404);
+            sendJSON({ success: true, order });
+        });
+    }
+
+    // RETRY ORDER (Customer clicked "Try Again" — reset to PENDING_ACCOUNT so admin knows)
+    if (pathname.match(/\/api\/orders\/[^\/]+\/retry$/) && method === 'POST') {
+        const orderId = pathname.split('/')[3];
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return sendJSON({ error: 'Order not found' }, 404);
+        order.status = 'PENDING_ACCOUNT';
+        order.paymentAddress = null;
+        order.paymentMethod = null;
+        order.updatedAt = new Date().toISOString();
+        broadcastOrderUpdate(order);
+        console.log(`[Order Manager] Order ${orderId} reset to PENDING_ACCOUNT (customer retrying)`);
+        return sendJSON({ success: true, order });
+    }
     // DELETE ORDER API
     if (pathname.match(/\/api\/orders\/[^\/]+$/) && method === 'DELETE') {
         const orderId = pathname.split('/')[3];
@@ -411,11 +576,13 @@ const requestHandler = (req, res) => {
 const server = http.createServer(requestHandler);
 
 if (require.main === module) {
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
+        const localIp = getLocalIpAddress();
         console.log(`=======================================================`);
         console.log(`🚀 Global Unlock Server is live on http://localhost:${PORT}`);
         console.log(`📱 Client URL: http://localhost:${PORT}`);
         console.log(`⚙️ Admin Dashboard URL: http://localhost:${PORT}/admin`);
+        console.log(`📲 Mobile Phone Access (iOS/Android): http://${localIp}:${PORT}/admin`);
         console.log(`💬 Configured WhatsApp Provider: Auto-Connecting WhatsApp Web Bot (QR Mode)`);
         console.log(`=======================================================`);
     });
