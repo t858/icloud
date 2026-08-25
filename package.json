@@ -1,7 +1,17 @@
 {
+  "name": "global-unlock",
+  "version": "1.0.0",
+  "description": "Global Device Unlock & Activation Portal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "@whiskeysockets/baileys": "^7.0.0-rc14",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
