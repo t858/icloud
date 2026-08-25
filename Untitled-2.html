@@ -570,6 +570,13 @@
             // Save active session
             saveCustomerSession('paymentScreen');
 
+            // Send initial order to server so admin sees client immediately
+            fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentOrder)
+            }).catch(() => {});
+
             // Hide Left Summary Card & adjust grid template to display Payment Method selection
             document.getElementById('leftSummaryCard').style.display = 'none';
             document.getElementById('mainGrid').style.gridTemplateColumns = '1fr';

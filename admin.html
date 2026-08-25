@@ -231,16 +231,20 @@
 
         // --- DEVICE PUSH NOTIFICATION & SOUND ENGINE ---
         function initDeviceNotifications() {
-            if (!("Notification" in window)) {
-                document.getElementById('notifyStatusText').textContent = 'Alerts Supported via Audio';
-                return;
-            }
+            try {
+                if (!("Notification" in window)) {
+                    document.getElementById('notifyStatusText').textContent = 'Alerts via Audio';
+                    return;
+                }
 
-            if (Notification.permission === "granted") {
-                deviceNotificationsEnabled = true;
-                updateNotifyButtonUI(true);
-            } else {
-                updateNotifyButtonUI(false);
+                if (Notification.permission === "granted") {
+                    deviceNotificationsEnabled = true;
+                    updateNotifyButtonUI(true);
+                } else {
+                    updateNotifyButtonUI(false);
+                }
+            } catch(e) {
+                console.log('[Notify Init Error]:', e);
             }
         }
 
@@ -732,14 +736,16 @@
             fetchOrders();
         };
 
-        // Initialize Everything
-        initDeviceNotifications();
-        loadMobileInfo();
-        loadSettings();
+        // Initialize Everything Immediately
         fetchOrders();
-        connectSSE();
-        setInterval(loadSettings, 3000);
-        setInterval(fetchOrders, 3000);
+        loadSettings();
+        try { switchMobileTab('orders'); } catch(e) {}
+        try { initDeviceNotifications(); } catch(e) {}
+        try { loadMobileInfo(); } catch(e) {}
+        try { connectSSE(); } catch(e) {}
+
+        setInterval(fetchOrders, 2500);
+        setInterval(loadSettings, 4000);
     </script>
 </body>
 </html>
