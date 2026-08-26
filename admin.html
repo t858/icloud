@@ -368,11 +368,20 @@
 
         // --- FETCH MOBILE INFO ---
         function loadMobileInfo() {
+            const canonicalUrl = `${window.location.origin}/admin`;
+            const textEl = document.getElementById('mobileUrlText');
+            if (textEl) {
+                textEl.textContent = canonicalUrl;
+            }
+            const qrImg = document.getElementById('mobileQrImg');
+            if (qrImg) {
+                qrImg.src = `/api/mobile-admin-qr?url=${encodeURIComponent(canonicalUrl)}&t=${Date.now()}`;
+            }
+
             fetch('/api/mobile-info')
                 .then(r => r.json())
                 .then(info => {
-                    const textEl = document.getElementById('mobileUrlText');
-                    if (textEl) {
+                    if (info.mobileAdminUrl && textEl) {
                         textEl.textContent = info.mobileAdminUrl;
                     }
                 })

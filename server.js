@@ -273,22 +273,32 @@ const requestHandler = (req, res) => {
         return;
     }
 
+    // Helper to get canonical host URL (supports Render HTTPS, custom domain, and localhost)
+    const getBaseUrl = () => {
+        const host = req.headers['x-forwarded-host'] || req.headers.host;
+        const proto = req.headers['x-forwarded-proto'] || (req.connection && req.connection.encrypted ? 'https' : 'http');
+        if (host && !host.startsWith('localhost') && !host.startsWith('127.0.0.1')) {
+            return `${proto}://${host}`;
+        }
+        const localIp = getLocalIpAddress();
+        return `http://${localIp}:${PORT}`;
+    };
+
     // --- Mobile Access Info Endpoint (LAN IP & Direct URLs) ---
     if (pathname === '/api/mobile-info' && method === 'GET') {
-        const localIp = getLocalIpAddress();
+        const baseUrl = getBaseUrl();
         return sendJSON({
-            localIp,
+            localIp: getLocalIpAddress(),
             port: PORT,
-            mobileAdminUrl: `http://${localIp}:${PORT}/admin`,
-            mobileClientUrl: `http://${localIp}:${PORT}`
+            mobileAdminUrl: `${baseUrl}/admin`,
+            mobileClientUrl: baseUrl
         });
     }
 
     // --- QR Code to Open Admin on Mobile Device (Camera Scan) ---
     if (pathname === '/api/mobile-admin-qr' && method === 'GET') {
-        const localIp = getLocalIpAddress();
-        const mobileAdminUrl = `http://${localIp}:${PORT}/admin`;
-        QRCode.toBuffer(mobileAdminUrl, { type: 'png', width: 300, margin: 2 }, (err, buffer) => {
+        const targetUrl = parsedUrl.query && parsedUrl.query.url ? parsedUrl.query.url : `${getBaseUrl()}/admin`;
+        QRCode.toBuffer(targetUrl, { type: 'png', width: 300, margin: 2 }, (err, buffer) => {
             if (err) {
                 res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Mobile QR generation failed' }));
