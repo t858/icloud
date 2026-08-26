@@ -237,13 +237,23 @@
             <div style="padding: 20px; overflow-y: auto; text-align: center; background: #0f1117;">
                 <img id="receiptModalImg" src="" alt="Payment Receipt" style="max-width: 100%; max-height: 65vh; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
             </div>
-            <div style="padding: 14px 20px; border-top: 1px solid #2a2e3d; display: flex; justify-content: space-between; align-items: center; background: #1a1d26;">
-                <a id="receiptDownloadBtn" href="" download="receipt.png" class="btn btn-sm" style="background: #2a2e3d; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 6px;">
-                    ⬇️ Download Image
-                </a>
-                <button onclick="closeReceiptModal()" class="btn btn-sm" style="background: var(--primary); color: #fff;">
-                    Close
-                </button>
+            <div style="padding: 14px 20px; border-top: 1px solid #2a2e3d; display: flex; justify-content: space-between; align-items: center; background: #1a1d26; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; gap: 8px;">
+                    <a id="receiptDownloadBtn" href="" download="receipt.png" class="btn btn-sm" style="background: #2a2e3d; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 6px;">
+                        ⬇️ Download
+                    </a>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="modalRejectBtn" onclick="modalRejectCurrentOrder()" class="btn btn-sm" style="background: #ff453a; color: #fff;">
+                        ❌ Reject
+                    </button>
+                    <button id="modalConfirmBtn" onclick="modalConfirmCurrentOrder()" class="btn btn-sm" style="background: var(--success); color: #fff;">
+                        ✅ Confirm Payment
+                    </button>
+                    <button onclick="closeReceiptModal()" class="btn btn-sm" style="background: #2a2e3d; color: #8b92a5;">
+                        ✕
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -784,22 +794,46 @@
             }
         }
 
+        let activeModalOrderId = null;
+
         function viewReceiptImage(orderId) {
             const order = ordersData.find(o => o.id === orderId);
             if (!order || !order.receiptImage) {
                 alert('No receipt image attached to this order.');
                 return;
             }
+            activeModalOrderId = orderId;
             document.getElementById('receiptModalSubtitle').textContent = `Order: ${order.id} | Sender: ${order.senderName || 'N/A'}`;
             document.getElementById('receiptModalImg').src = order.receiptImage;
             document.getElementById('receiptDownloadBtn').href = order.receiptImage;
             document.getElementById('receiptDownloadBtn').download = `receipt_${order.id}.png`;
+            
+            // Show or hide action buttons based on status
+            const isSubmitted = (order.status === 'PAYMENT_SUBMITTED');
+            document.getElementById('modalConfirmBtn').style.display = isSubmitted ? 'inline-block' : 'none';
+            document.getElementById('modalRejectBtn').style.display = isSubmitted ? 'inline-block' : 'none';
+
             const modal = document.getElementById('receiptModal');
             modal.style.display = 'flex';
         }
 
         function closeReceiptModal() {
+            activeModalOrderId = null;
             document.getElementById('receiptModal').style.display = 'none';
+        }
+
+        function modalConfirmCurrentOrder() {
+            if (!activeModalOrderId) return;
+            const targetId = activeModalOrderId;
+            closeReceiptModal();
+            confirmOrder(targetId);
+        }
+
+        function modalRejectCurrentOrder() {
+            if (!activeModalOrderId) return;
+            const targetId = activeModalOrderId;
+            closeReceiptModal();
+            rejectOrder(targetId);
         }
 
         function assignPaymentAccount(orderId) {
