@@ -565,6 +565,8 @@ const requestHandler = (req, res) => {
             const order = orders.find(o => o.id === orderId);
             if (!order) return sendJSON({ error: 'Order not found' }, 404);
 
+            if (body.senderName) order.senderName = body.senderName;
+            if (body.receiptImage) order.receiptImage = body.receiptImage;
             order.status = 'PAYMENT_SUBMITTED';
             order.updatedAt = new Date().toISOString();
 
@@ -573,16 +575,18 @@ const requestHandler = (req, res) => {
             // Second Notification: "confirm payment now"
             const alertText = `confirm payment now\n\n` +
                 `Order ID: ${order.id}\n` +
+                `Sender Name: ${order.senderName || 'Not specified'}\n` +
                 `Target Model: ${order.model}\n` +
                 `Paid: ${order.totalPrice} via ${order.paymentMethod}\n` +
                 `Account Used: ${order.paymentAddress}\n` +
+                `Receipt Proof: ${order.receiptImage ? '✅ Attached on Admin Dashboard' : 'None'}\n` +
                 `Customer Email: ${order.email}\n\n` +
                 `👉 REPLY "ok" OR "confirm" TO APPROVE, OR "no" TO REJECT!`;
 
             // Dispatch Native Web Push to Admin Phones
             sendWebPushNotification({
                 title: `💰 Payment Submitted: ${order.id}`,
-                body: `Customer submitted payment for ${order.model} (${order.totalPrice} via ${order.paymentMethod})!`,
+                body: `Sender: ${order.senderName || 'Customer'} | ${order.model} (${order.totalPrice} via ${order.paymentMethod}) - Receipt Attached!`,
                 orderId: order.id,
                 url: '/admin'
             });

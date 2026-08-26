@@ -397,8 +397,52 @@
                         ⏰ Payment window expires in: <span id="timerDisplay">30:00</span>
                     </div>
 
-                    <button onclick="confirmClientPayment()" class="action-btn" style="background: var(--success);">I Have Made the Payment</button>
+                    <button onclick="goToPaymentProof()" class="action-btn" style="background: var(--success);">I Have Made the Payment</button>
                     <a onclick="resetToOrderForm()" class="back-to-order">← Cancel and return to form</a>
+                </div>
+
+                <!-- STEP 4b: SUBMIT PAYMENT PROOF & SENDER NAME -->
+                <div id="paymentProofScreen" class="payment-screen">
+                    <div style="font-size: 3rem; margin-bottom: 8px;">🧾</div>
+                    <h3>Upload Payment Receipt</h3>
+                    <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px;">
+                        Please provide your sender account name and attach a screenshot or photo of your transfer for instant admin verification.
+                    </p>
+
+                    <div style="background: #fafafa; border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: left; margin-bottom: 20px;">
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="font-weight: 700; color: #1d1d1f; font-size: 0.85rem; text-transform: uppercase;">
+                                1. Sender Full Name / Account Name <span style="color: #ff3b30;">*</span>
+                            </label>
+                            <input type="text" id="senderNameInput" required placeholder="e.g. Daniel Smith / Account Holder Name" style="margin-top: 6px;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 6px;">
+                            <label style="font-weight: 700; color: #1d1d1f; font-size: 0.85rem; text-transform: uppercase;">
+                                2. Upload Receipt Screenshot <span style="color: #ff3b30;">*</span>
+                            </label>
+                            <div id="dropZone" style="border: 2px dashed #0071e3; border-radius: 12px; padding: 22px; text-align: center; background: #f0f7ff; cursor: pointer; margin-top: 6px;" onclick="document.getElementById('receiptFileInput').click()">
+                                <div style="font-size: 2.2rem; margin-bottom: 6px;">📸</div>
+                                <div style="font-weight: 600; color: var(--primary); font-size: 0.95rem;">Tap to Choose Screenshot or Take Photo</div>
+                                <div style="font-size: 0.8rem; color: #86868b; margin-top: 4px;">PNG, JPG, JPEG or WEBP (Max 10MB)</div>
+                                <input type="file" id="receiptFileInput" accept="image/*" style="display: none;" onchange="handleReceiptFileSelect(event)">
+                            </div>
+                            
+                            <!-- Image Preview Area -->
+                            <div id="receiptPreviewContainer" style="display: none; margin-top: 14px; text-align: center;">
+                                <div style="position: relative; display: inline-block; max-width: 100%;">
+                                    <img id="receiptPreviewImg" src="" alt="Receipt Preview" style="max-height: 220px; max-width: 100%; border-radius: 10px; border: 1.5px solid #d2d2d7; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                                    <button type="button" onclick="removeReceiptFile(event)" style="position: absolute; top: -10px; right: -10px; background: #ff3b30; color: white; border: 2px solid white; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-weight: bold; font-size: 14px; line-height: 1;">✕</button>
+                                </div>
+                                <div id="receiptFileName" style="font-size: 0.82rem; color: #515154; margin-top: 6px; font-weight: 600;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="submitPaymentProof()" id="btnSubmitProof" class="action-btn" style="background: var(--success);">
+                        🚀 Submit Receipt & Confirm Order
+                    </button>
+                    <a onclick="backToInstructions()" class="back-to-order">← Back to Payment Details</a>
                 </div>
 
                 <!-- STEP 5: VERIFICATION -->
@@ -615,7 +659,8 @@
                 currentOrder = order;
 
                 // Adjust layout to checkout view
-                document.getElementById('leftSummaryCard').style.display = 'none';
+                if (document.getElementById('leftColumnArea')) document.getElementById('leftColumnArea').style.display = 'none';
+                else if (document.getElementById('leftSummaryCard')) document.getElementById('leftSummaryCard').style.display = 'none';
                 document.getElementById('mainGrid').style.gridTemplateColumns = '1fr';
                 document.getElementById('formContentArea').style.display = 'none';
                 document.querySelectorAll('.payment-screen').forEach(el => el.style.display = 'none');
@@ -632,6 +677,8 @@
                     showPaymentFailed();
                 } else if (currentOrder.status === 'PAYMENT_SUBMITTED' || savedScreen === 'verificationScreen') {
                     document.getElementById('verificationScreen').style.display = 'block';
+                } else if (savedScreen === 'paymentProofScreen') {
+                    document.getElementById('paymentProofScreen').style.display = 'block';
                 } else if (currentOrder.status === 'AWAITING_PAYMENT' && currentOrder.paymentAddress) {
                     displayPaymentInstructions(currentOrder.paymentAddress);
                 } else if (currentOrder.status === 'PENDING_ACCOUNT' && currentOrder.paymentMethod) {
@@ -959,31 +1006,100 @@
             }, 1000);
         }
 
-        // STAGE 3: Client Clicks "I Have Made the Payment" -> Wait for Admin Confirmation + WhatsApp Alert #2
-        function confirmClientPayment() {
+        let selectedReceiptBase64 = '';
+
+        function goToPaymentProof() {
+            saveCustomerSession('paymentProofScreen');
+            document.getElementById('instructionScreen').style.display = 'none';
+            document.getElementById('paymentProofScreen').style.display = 'block';
+        }
+
+        function backToInstructions() {
+            saveCustomerSession('instructionScreen');
+            document.getElementById('paymentProofScreen').style.display = 'none';
+            document.getElementById('instructionScreen').style.display = 'block';
+        }
+
+        function handleReceiptFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 12 * 1024 * 1024) {
+                alert('Image is too large. Please upload an image under 10MB.');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedReceiptBase64 = e.target.result;
+                document.getElementById('receiptPreviewImg').src = selectedReceiptBase64;
+                document.getElementById('receiptFileName').textContent = file.name;
+                document.getElementById('receiptPreviewContainer').style.display = 'block';
+                document.getElementById('dropZone').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeReceiptFile(event) {
+            if (event) event.stopPropagation();
+            selectedReceiptBase64 = '';
+            document.getElementById('receiptFileInput').value = '';
+            document.getElementById('receiptPreviewImg').src = '';
+            document.getElementById('receiptPreviewContainer').style.display = 'none';
+            document.getElementById('dropZone').style.display = 'block';
+        }
+
+        // STAGE 3: Client Submits Payment Proof & Sender Name -> Wait for Admin Confirmation + WhatsApp Alert #2
+        function submitPaymentProof() {
+            const senderName = document.getElementById('senderNameInput').value.trim();
+            if (!senderName) {
+                alert('Please enter the Sender / Account Holder Full Name.');
+                document.getElementById('senderNameInput').focus();
+                return;
+            }
+
+            if (!selectedReceiptBase64) {
+                alert('Please attach or take a photo of your payment transfer screenshot to continue.');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitProof');
+            btn.disabled = true;
+            btn.textContent = '⏳ Uploading Receipt & Verifying...';
+
             clearInterval(countdownInterval);
             saveCustomerSession('verificationScreen');
 
-            document.getElementById('instructionScreen').style.display = 'none';
+            document.getElementById('paymentProofScreen').style.display = 'none';
             document.getElementById('verificationScreen').style.display = 'block';
 
             fetch(`/api/orders/${currentOrder.id}/mark-paid`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
+                body: JSON.stringify({
+                    senderName: senderName,
+                    receiptImage: selectedReceiptBase64
+                })
             })
             .then(r => r.json())
             .then(res => {
+                btn.disabled = false;
+                btn.textContent = '🚀 Submit Receipt & Confirm Order';
                 if(res.order) {
                     currentOrder = res.order;
                     saveCustomerSession('verificationScreen');
                 }
             })
             .catch(() => {
+                btn.disabled = false;
+                btn.textContent = '🚀 Submit Receipt & Confirm Order';
                 const localOrders = JSON.parse(localStorage.getItem('unlock_orders_v2') || '[]');
                 const target = localOrders.find(o => o.id === currentOrder.id);
                 if(target) {
                     target.status = 'PAYMENT_SUBMITTED';
+                    target.senderName = senderName;
+                    target.receiptImage = selectedReceiptBase64;
                     localStorage.setItem('unlock_orders_v2', JSON.stringify(localOrders));
                     BROADCAST_CHANNEL.postMessage({ type: 'ORDER_UPDATED', order: target });
                 }

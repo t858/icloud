@@ -224,6 +224,30 @@
         </div>
     </main>
 
+    <!-- RECEIPT LIGHTBOX MODAL -->
+    <div id="receiptModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;" onclick="closeReceiptModal()">
+        <div style="background: #1a1d26; border: 1px solid #2a2e3d; border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; position: relative;" onclick="event.stopPropagation()">
+            <div style="padding: 16px 20px; border-bottom: 1px solid #2a2e3d; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem; color: #fff;">📸 Payment Receipt Proof</h3>
+                    <div id="receiptModalSubtitle" style="font-size: 0.8rem; color: #8b92a5; margin-top: 2px;"></div>
+                </div>
+                <button onclick="closeReceiptModal()" style="background: none; border: none; color: #8b92a5; font-size: 1.5rem; cursor: pointer; line-height: 1;">✕</button>
+            </div>
+            <div style="padding: 20px; overflow-y: auto; text-align: center; background: #0f1117;">
+                <img id="receiptModalImg" src="" alt="Payment Receipt" style="max-width: 100%; max-height: 65vh; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+            </div>
+            <div style="padding: 14px 20px; border-top: 1px solid #2a2e3d; display: flex; justify-content: space-between; align-items: center; background: #1a1d26;">
+                <a id="receiptDownloadBtn" href="" download="receipt.png" class="btn btn-sm" style="background: #2a2e3d; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 6px;">
+                    ⬇️ Download Image
+                </a>
+                <button onclick="closeReceiptModal()" class="btn btn-sm" style="background: var(--primary); color: #fff;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const BROADCAST_CHANNEL = new BroadcastChannel('global_unlock_sync');
         let currentFilter = 'ALL';
@@ -659,8 +683,15 @@
                     statusBadge = `<span class="status-badge badge-submitted">💰 Client Paid (Confirm!)</span>`;
                     actionHtml = `
                         <div class="action-box" style="border-color: var(--purple); background: rgba(175, 82, 222, 0.1);">
-                            <p style="color: #e2bbfd;"><strong>Client clicked "I Have Made the Payment":</strong></p>
-                            <p>Paid Amount: <strong>${order.totalPrice}</strong> via <strong>${order.paymentMethod}</strong> (${order.paymentAddress})</p>
+                            <p style="color: #e2bbfd; margin-bottom:6px;"><strong>Client submitted payment confirmation:</strong></p>
+                            ${order.senderName ? `<p style="margin-bottom: 4px;">Sender Name: <strong style="color:#60a5fa; font-size:1.05rem;">${order.senderName}</strong></p>` : ''}
+                            <p style="margin-bottom: 8px;">Paid Amount: <strong>${order.totalPrice}</strong> via <strong>${order.paymentMethod}</strong> (${order.paymentAddress})</p>
+                            ${order.receiptImage ? `
+                            <div style="margin: 10px 0;">
+                                <button onclick="viewReceiptImage('${order.id}')" class="btn btn-sm" style="background: rgba(0, 113, 227, 0.25); border: 1px solid var(--primary); color: #80bfff; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; padding: 10px 14px; font-size: 0.9rem;">
+                                    📸 View Uploaded Receipt Screenshot
+                                </button>
+                            </div>` : '<p style="color: #ff9f0a; font-size: 0.8rem; margin: 6px 0;">⚠️ No receipt image attached</p>'}
                             <div style="display:flex; gap:10px; margin-top:10px;">
                                 <button onclick="confirmOrder('${order.id}')" class="btn btn-success" style="flex:1;">✅ Confirm Payment</button>
                                 <button onclick="rejectOrder('${order.id}')" class="btn btn-warning" style="flex:1; background:#ff453a; color:white;">❌ Reject / Not Paid</button>
@@ -680,7 +711,12 @@
                     statusBadge = `<span class="status-badge badge-completed">✅ Completed</span>`;
                     actionHtml = `
                         <div class="action-box" style="border-color: var(--success); background: rgba(52, 199, 89, 0.08);">
-                            <p style="color: var(--success); margin-bottom:0;">Order verified. Receipt released to client.</p>
+                            <p style="color: var(--success); margin-bottom:4px;">Order verified. Receipt released to client.</p>
+                            ${order.senderName ? `<p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">Sender: <strong>${order.senderName}</strong></p>` : ''}
+                            ${order.receiptImage ? `
+                            <button onclick="viewReceiptImage('${order.id}')" class="btn btn-sm" style="background: rgba(255,255,255,0.05); border: 1px solid #3b4256; color: #8b92a5; margin-top:6px; font-size:0.8rem;">
+                                📸 View Archived Receipt Proof
+                            </button>` : ''}
                         </div>
                     `;
                 }
@@ -723,6 +759,11 @@
                                 <span>Client Email</span>
                                 <span>${order.email}</span>
                             </div>
+                            ${order.senderName ? `
+                            <div class="detail-item">
+                                <span>Sender Name</span>
+                                <span style="color: #60a5fa; font-weight: bold;">${order.senderName}</span>
+                            </div>` : ''}
                         </div>
 
                         ${actionHtml}
@@ -741,6 +782,24 @@
                     try { restoredEl.setSelectionRange(selStart, selEnd); } catch(e){}
                 }
             }
+        }
+
+        function viewReceiptImage(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order || !order.receiptImage) {
+                alert('No receipt image attached to this order.');
+                return;
+            }
+            document.getElementById('receiptModalSubtitle').textContent = `Order: ${order.id} | Sender: ${order.senderName || 'N/A'}`;
+            document.getElementById('receiptModalImg').src = order.receiptImage;
+            document.getElementById('receiptDownloadBtn').href = order.receiptImage;
+            document.getElementById('receiptDownloadBtn').download = `receipt_${order.id}.png`;
+            const modal = document.getElementById('receiptModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('receiptModal').style.display = 'none';
         }
 
         function assignPaymentAccount(orderId) {
