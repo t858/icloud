@@ -685,26 +685,44 @@
                     actionHtml = `
                         <div class="action-box">
                             <p>Assigned Account: <strong style="color:var(--primary);">${order.paymentAddress}</strong></p>
-                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0;">Client is currently viewing payment instructions and preparing transfer.</p>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">Client is currently viewing payment instructions and preparing transfer.</p>
+                            ${order.senderName ? `<p style="margin: 6px 0; color:#60a5fa; font-weight:600;">Sender Name: <strong>${order.senderName}</strong></p>` : ''}
+                            ${order.receiptImage ? `
+                            <div style="margin: 10px 0; text-align:center;">
+                                <img src="${order.receiptImage}" onclick="viewReceiptImage('${order.id}')" alt="Receipt" style="max-height: 120px; max-width: 100%; border-radius: 8px; cursor: pointer; border: 1.5px solid #0071e3; box-shadow: 0 2px 8px rgba(0,0,0,0.3);" title="Click to view full screen">
+                                <div style="font-size: 0.75rem; color: #80bfff; margin-top: 4px; cursor: pointer;" onclick="viewReceiptImage('${order.id}')">🔍 Click to enlarge receipt</div>
+                            </div>` : ''}
+                            <div style="display:flex; gap:10px; margin-top:10px;">
+                                <button onclick="confirmOrder('${order.id}')" class="btn btn-success" style="flex:1;">✅ Confirm Payment</button>
+                                <button onclick="rejectOrder('${order.id}')" class="btn btn-warning" style="flex:1; background:#ff453a; color:white;">❌ Reject / Not Paid</button>
+                            </div>
                         </div>
                     `;
                 } else if(order.status === 'PAYMENT_SUBMITTED') {
                     cardClass = 'status-submitted';
                     statusBadge = `<span class="status-badge badge-submitted">💰 Client Paid (Confirm!)</span>`;
                     actionHtml = `
-                        <div class="action-box" style="border-color: var(--purple); background: rgba(175, 82, 222, 0.1);">
-                            <p style="color: #e2bbfd; margin-bottom:6px;"><strong>Client submitted payment confirmation:</strong></p>
-                            ${order.senderName ? `<p style="margin-bottom: 4px;">Sender Name: <strong style="color:#60a5fa; font-size:1.05rem;">${order.senderName}</strong></p>` : ''}
-                            <p style="margin-bottom: 8px;">Paid Amount: <strong>${order.totalPrice}</strong> via <strong>${order.paymentMethod}</strong> (${order.paymentAddress})</p>
+                        <div class="action-box" style="border-color: var(--purple); background: rgba(175, 82, 222, 0.12);">
+                            <p style="color: #e2bbfd; margin-bottom:8px; font-weight:700; font-size:0.95rem;">⚡ Customer Submitted Payment Proof:</p>
+                            <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px;">
+                                <p style="margin-bottom: 4px;">👤 <strong>Sender Name:</strong> <span style="color:#60a5fa; font-size:1.1rem; font-weight:700;">${order.senderName || 'Not specified'}</span></p>
+                                <p style="margin-bottom: 0;">💵 <strong>Paid Amount:</strong> <strong>${order.totalPrice}</strong> via <strong>${order.paymentMethod}</strong></p>
+                            </div>
+
                             ${order.receiptImage ? `
-                            <div style="margin: 10px 0;">
-                                <button onclick="viewReceiptImage('${order.id}')" class="btn btn-sm" style="background: rgba(0, 113, 227, 0.25); border: 1px solid var(--primary); color: #80bfff; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; padding: 10px 14px; font-size: 0.9rem;">
-                                    📸 View Uploaded Receipt Screenshot
-                                </button>
-                            </div>` : '<p style="color: #ff9f0a; font-size: 0.8rem; margin: 6px 0;">⚠️ No receipt image attached</p>'}
-                            <div style="display:flex; gap:10px; margin-top:10px;">
-                                <button onclick="confirmOrder('${order.id}')" class="btn btn-success" style="flex:1;">✅ Confirm Payment</button>
-                                <button onclick="rejectOrder('${order.id}')" class="btn btn-warning" style="flex:1; background:#ff453a; color:white;">❌ Reject / Not Paid</button>
+                            <div style="margin: 12px 0; text-align: center;">
+                                <div style="font-size: 0.75rem; text-transform: uppercase; color: #80bfff; font-weight: 700; margin-bottom: 6px;">Transfer Receipt Proof:</div>
+                                <img src="${order.receiptImage}" onclick="viewReceiptImage('${order.id}')" alt="Receipt Proof" style="max-height: 160px; max-width: 100%; border-radius: 8px; cursor: pointer; border: 2px solid #0071e3; box-shadow: 0 4px 12px rgba(0,0,0,0.4);" title="Click to view full screen">
+                                <div style="margin-top: 8px;">
+                                    <button onclick="viewReceiptImage('${order.id}')" class="btn btn-sm" style="background: rgba(0, 113, 227, 0.3); border: 1px solid var(--primary); color: #80bfff; font-weight: 700; padding: 6px 14px; font-size: 0.85rem;">
+                                        🔍 Open Full-Screen Image
+                                    </button>
+                                </div>
+                            </div>` : '<p style="color: #ff9f0a; font-size: 0.82rem; margin: 8px 0;">⚠️ No receipt image attached</p>'}
+
+                            <div style="display:flex; gap:10px; margin-top:12px;">
+                                <button onclick="confirmOrder('${order.id}')" class="btn btn-success" style="flex:1; padding: 12px; font-weight: 700; font-size: 0.95rem;">✅ Confirm Payment</button>
+                                <button onclick="rejectOrder('${order.id}')" class="btn btn-warning" style="flex:1; background:#ff453a; color:white; padding: 12px; font-weight: 700; font-size: 0.95rem;">❌ Reject / Not Paid</button>
                             </div>
                         </div>
                     `;
@@ -713,7 +731,8 @@
                     statusBadge = `<span class="status-badge badge-failed">❌ Payment Unsuccessful</span>`;
                     actionHtml = `
                         <div class="action-box" style="border-color: var(--danger); background: rgba(255, 69, 58, 0.08);">
-                            <p style="color: var(--danger); margin-bottom:0;">Payment was marked as NOT successful. Customer is prompted with "Try Again".</p>
+                            <p style="color: var(--danger); margin-bottom:4px;">Payment was marked as NOT successful. Customer is prompted with "Try Again".</p>
+                            ${order.senderName ? `<p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0;">Previous Sender: <strong>${order.senderName}</strong></p>` : ''}
                         </div>
                     `;
                 } else if(order.status === 'COMPLETED') {
@@ -721,12 +740,12 @@
                     statusBadge = `<span class="status-badge badge-completed">✅ Completed</span>`;
                     actionHtml = `
                         <div class="action-box" style="border-color: var(--success); background: rgba(52, 199, 89, 0.08);">
-                            <p style="color: var(--success); margin-bottom:4px;">Order verified. Receipt released to client.</p>
+                            <p style="color: var(--success); margin-bottom:4px; font-weight:600;">Order verified & approved. Receipt released to client.</p>
                             ${order.senderName ? `<p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">Sender: <strong>${order.senderName}</strong></p>` : ''}
                             ${order.receiptImage ? `
-                            <button onclick="viewReceiptImage('${order.id}')" class="btn btn-sm" style="background: rgba(255,255,255,0.05); border: 1px solid #3b4256; color: #8b92a5; margin-top:6px; font-size:0.8rem;">
-                                📸 View Archived Receipt Proof
-                            </button>` : ''}
+                            <div style="margin-top: 6px;">
+                                <img src="${order.receiptImage}" onclick="viewReceiptImage('${order.id}')" alt="Archived Receipt" style="max-height: 70px; border-radius: 4px; cursor: pointer; border: 1px solid #3b4256;" title="Click to view archived receipt">
+                            </div>` : ''}
                         </div>
                     `;
                 }

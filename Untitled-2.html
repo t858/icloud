@@ -1024,19 +1024,48 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            if (file.size > 12 * 1024 * 1024) {
-                alert('Image is too large. Please upload an image under 10MB.');
-                event.target.value = '';
-                return;
-            }
+            document.getElementById('dropZone').innerHTML = `<div style="font-size:1.8rem; margin-bottom:4px;">⏳</div><div style="font-weight:600; color:var(--primary); font-size:0.9rem;">Optimizing receipt image...</div>`;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                selectedReceiptBase64 = e.target.result;
+            compressReceiptImage(file, 1200, 0.78, (base64) => {
+                selectedReceiptBase64 = base64;
                 document.getElementById('receiptPreviewImg').src = selectedReceiptBase64;
-                document.getElementById('receiptFileName').textContent = file.name;
+                document.getElementById('receiptFileName').textContent = `${file.name} (Ready)`;
                 document.getElementById('receiptPreviewContainer').style.display = 'block';
                 document.getElementById('dropZone').style.display = 'none';
+            });
+        }
+
+        function compressReceiptImage(file, maxDimension, quality, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = Math.round((height * maxDimension) / width);
+                            width = maxDimension;
+                        } else {
+                            width = Math.round((width * maxDimension) / height);
+                            height = maxDimension;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                    callback(compressedBase64);
+                };
+                img.onerror = function() {
+                    callback(e.target.result);
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -1048,6 +1077,12 @@
             document.getElementById('receiptPreviewImg').src = '';
             document.getElementById('receiptPreviewContainer').style.display = 'none';
             document.getElementById('dropZone').style.display = 'block';
+            document.getElementById('dropZone').innerHTML = `
+                <div style="font-size: 2.2rem; margin-bottom: 6px;">📸</div>
+                <div style="font-weight: 600; color: var(--primary); font-size: 0.95rem;">Tap to Choose Screenshot or Take Photo</div>
+                <div style="font-size: 0.8rem; color: #86868b; margin-top: 4px;">PNG, JPG, JPEG or WEBP (Max 10MB)</div>
+                <input type="file" id="receiptFileInput" accept="image/*" style="display: none;" onchange="handleReceiptFileSelect(event)">
+            `;
         }
 
         // STAGE 3: Client Submits Payment Proof & Sender Name -> Wait for Admin Confirmation + WhatsApp Alert #2
