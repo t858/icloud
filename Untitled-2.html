@@ -247,10 +247,10 @@
         
         const defaultPricing = [
             // --- APPLE IPHONE SERIES ---
-            { id: "ip17pm", label: "iPhone 17 Pro Max", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip17p", label: "iPhone 17 Pro", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip17pm", label: "iPhone 17 Pro Max", basePrice: 100, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip17p", label: "iPhone 17 Pro", basePrice: 95, category: "Apple iPhone", brand: "Apple" },
             { id: "ip17plus", label: "iPhone 17 Plus", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip17", label: "iPhone 17", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip17", label: "iPhone 17", basePrice: 85, category: "Apple iPhone", brand: "Apple" },
             { id: "ip16pm", label: "iPhone 16 Pro Max", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
             { id: "ip16p", label: "iPhone 16 Pro", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
             { id: "ip16plus", label: "iPhone 16 Plus", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
@@ -312,7 +312,7 @@
             { id: "zfold3", label: "Galaxy Z Fold 3", basePrice: 70, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" }
         ];
 
-        localStorage.setItem('unlock_pricing_v8', JSON.stringify(defaultPricing));
+        localStorage.setItem('unlock_pricing_v9', JSON.stringify(defaultPricing));
         if(!localStorage.getItem('unlock_orders_v2')) localStorage.setItem('unlock_orders_v2', JSON.stringify([]));
 
         let currentOrder = null;
@@ -443,7 +443,7 @@
         }
 
         function initData() {
-            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v8'));
+            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v9'));
             const modelDropdown = document.getElementById('deviceModel');
             
             modelDropdown.innerHTML = '<option value="" disabled selected>-- Select target device model --</option>';
@@ -493,7 +493,7 @@
         }
 
         function calculateTotal() {
-            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v8'));
+            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v9'));
             const serviceSelect = document.getElementById('serviceType');
             const modelDropdown = document.getElementById('deviceModel');
             
