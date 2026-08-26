@@ -5,10 +5,68 @@ const https = require('https');
 const url = require('url');
 const os = require('os');
 const QRCode = require('qrcode');
+const webPush = require('web-push');
 
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'orders_db.json');
 const SETTINGS_FILE = path.join(__dirname, 'settings.json');
+const VAPID_FILE = path.join(__dirname, 'vapid_keys.json');
+const SUBSCRIPTIONS_FILE = path.join(__dirname, 'push_subscriptions.json');
+
+// --- WEB PUSH ENGINE SETUP (VAPID / FCM / APNs) ---
+let vapidKeys = null;
+if (fs.existsSync(VAPID_FILE)) {
+    try {
+        vapidKeys = JSON.parse(fs.readFileSync(VAPID_FILE, 'utf8'));
+    } catch (e) {}
+}
+if (!vapidKeys || !vapidKeys.publicKey || !vapidKeys.privateKey) {
+    vapidKeys = webPush.generateVAPIDKeys();
+    try {
+        fs.writeFileSync(VAPID_FILE, JSON.stringify(vapidKeys, null, 2), 'utf8');
+    } catch (e) {}
+}
+
+webPush.setVapidDetails(
+    'mailto:admin@globalunlock.net',
+    vapidKeys.publicKey,
+    vapidKeys.privateKey
+);
+
+let pushSubscriptions = [];
+if (fs.existsSync(SUBSCRIPTIONS_FILE)) {
+    try {
+        pushSubscriptions = JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE, 'utf8'));
+    } catch (e) {}
+}
+
+function savePushSubscriptions() {
+    try {
+        fs.writeFileSync(SUBSCRIPTIONS_FILE, JSON.stringify(pushSubscriptions, null, 2), 'utf8');
+    } catch (e) {}
+}
+
+function sendWebPushNotification({ title, body, orderId, url }) {
+    if (!pushSubscriptions.length) return;
+    const payload = JSON.stringify({
+        title: title || '🔔 New Order Alert',
+        body: body || 'A customer performed an action on the portal.',
+        orderId: orderId || ('ORD-' + Date.now()),
+        url: url || '/admin'
+    });
+
+    console.log(`[Web Push] Dispatching to ${pushSubscriptions.length} device(s)...`);
+
+    pushSubscriptions.forEach((sub, index) => {
+        webPush.sendNotification(sub, payload).catch(err => {
+            console.error(`[Web Push Error] Device ${index}:`, err.message);
+            if (err.statusCode === 410 || err.statusCode === 404) {
+                pushSubscriptions.splice(index, 1);
+                savePushSubscriptions();
+            }
+        });
+    });
+}
 
 function getLocalIpAddress() {
     const interfaces = os.networkInterfaces();
@@ -244,33 +302,66 @@ const requestHandler = (req, res) => {
 
     // --- PWA Web App Manifest ---
     if (pathname === '/manifest.json' && method === 'GET') {
-        const manifest = {
-            name: "Global Unlock Admin Command Center",
-            short_name: "UnlockAdmin",
-            description: "Mobile Admin Command Center for Global Device Unlock",
-            start_url: "/admin",
-            display: "standalone",
-            orientation: "portrait",
-            background_color: "#0f1117",
-            theme_color: "#0f1117",
-            icons: [
-                {
-                    src: "/api/app-icon",
-                    sizes: "192x192",
-                    type: "image/png",
-                    purpose: "any maskable"
-                },
-                {
-                    src: "/api/app-icon",
-                    sizes: "512x512",
-                    type: "image/png",
-                    purpose: "any maskable"
-                }
-            ]
-        };
-        res.writeHead(200, { 'Content-Type': 'application/manifest+json' });
-        res.end(JSON.stringify(manifest, null, 2));
-        return;
+        const manifestPath = path.join(__dirname, 'manifest.json');
+        if (fs.existsSync(manifestPath)) {
+            const content = fs.readFileSync(manifestPath);
+            res.writeHead(200, { 'Content-Type': 'application/manifest+json' });
+            res.end(content);
+            return;
+        }
+    }
+
+    // --- PWA Service Worker (Handles Background Lock-Screen Push) ---
+    if (pathname === '/sw.js' && method === 'GET') {
+        const swPath = path.join(__dirname, 'sw.js');
+        if (fs.existsSync(swPath)) {
+            const content = fs.readFileSync(swPath);
+            res.writeHead(200, {
+                'Content-Type': 'application/javascript; charset=utf-8',
+                'Service-Worker-Allowed': '/',
+                'Cache-Control': 'no-cache, no-store'
+            });
+            res.end(content);
+            return;
+        }
+    }
+
+    // --- Web Push Subscription & Public Key Endpoints ---
+    if (pathname === '/api/push-public-key' && method === 'GET') {
+        return sendJSON({ publicKey: vapidKeys.publicKey });
+    }
+
+    if (pathname === '/api/push-subscribe' && method === 'POST') {
+        return parseBody(subscription => {
+            if (!subscription || !subscription.endpoint) {
+                return sendJSON({ error: 'Invalid subscription object' }, 400);
+            }
+            const exists = pushSubscriptions.find(s => s.endpoint === subscription.endpoint);
+            if (!exists) {
+                pushSubscriptions.push(subscription);
+                savePushSubscriptions();
+                console.log(`[Web Push] New mobile device registered for lock-screen push! Total devices: ${pushSubscriptions.length}`);
+            }
+            // Send welcome confirmation push
+            webPush.sendNotification(subscription, JSON.stringify({
+                title: '🎉 Device Alerts Connected!',
+                body: 'Your phone will now ring and alert you on lock-screen for every customer order.',
+                orderId: 'CONNECTED-' + Date.now(),
+                url: '/admin'
+            })).catch(() => {});
+
+            return sendJSON({ success: true, count: pushSubscriptions.length });
+        });
+    }
+
+    if (pathname === '/api/test-push' && method === 'POST') {
+        sendWebPushNotification({
+            title: '🧪 Test Lock-Screen Alert',
+            body: 'Lock your phone screen now and submit a test order on the site to see it wake your phone!',
+            orderId: 'TEST-' + Date.now(),
+            url: '/admin'
+        });
+        return sendJSON({ success: true, count: pushSubscriptions.length });
     }
 
     // Helper to get canonical host URL (supports Render HTTPS, custom domain, and localhost)
@@ -441,6 +532,14 @@ const requestHandler = (req, res) => {
                 `Customer Email: ${targetOrder.email}\n\n` +
                 `👉 REPLY ON WHATSAPP WITH PAYMENT DETAILS (e.g. pay@zelle.com or ${targetOrder.id} pay@zelle.com)`;
 
+            // Dispatch Native Web Push to Admin Phones
+            sendWebPushNotification({
+                title: `🔔 New Order: ${targetOrder.id}`,
+                body: `${targetOrder.model} (${targetOrder.totalPrice}) - ${targetOrder.paymentMethod}\nCountry: ${targetOrder.country}`,
+                orderId: targetOrder.id,
+                url: '/admin'
+            });
+
             if (settings.autoSendWhatsapp) {
                 sendWhatsappNotification(alertText);
             }
@@ -479,6 +578,14 @@ const requestHandler = (req, res) => {
                 `Account Used: ${order.paymentAddress}\n` +
                 `Customer Email: ${order.email}\n\n` +
                 `👉 REPLY "ok" OR "confirm" TO APPROVE, OR "no" TO REJECT!`;
+
+            // Dispatch Native Web Push to Admin Phones
+            sendWebPushNotification({
+                title: `💰 Payment Submitted: ${order.id}`,
+                body: `Customer submitted payment for ${order.model} (${order.totalPrice} via ${order.paymentMethod})!`,
+                orderId: order.id,
+                url: '/admin'
+            });
 
             if (settings.autoSendWhatsapp) {
                 sendWhatsappNotification(alertText);
