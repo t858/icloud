@@ -295,9 +295,56 @@ const requestHandler = (req, res) => {
         return;
     }
 
-    // --- REST API Endpoints ---
+    // --- Dedicated Fast Receipt Image Streamer (On-Demand with Caching) ---
+    if (pathname.match(/\/api\/orders\/[^\/]+\/receipt$/) && method === 'GET') {
+        const orderId = pathname.split('/')[3];
+        const order = orders.find(o => o.id === orderId);
+        if (!order || !order.receiptImage) {
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            return res.end('No receipt image');
+        }
+
+        if (order.receiptImage.startsWith('data:')) {
+            const matches = order.receiptImage.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+                const contentType = matches[1];
+                const imageBuffer = Buffer.from(matches[2], 'base64');
+                res.writeHead(200, {
+                    'Content-Type': contentType,
+                    'Content-Length': imageBuffer.length,
+                    'Cache-Control': 'public, max-age=86400'
+                });
+                return res.end(imageBuffer);
+            }
+        }
+
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        return res.end(order.receiptImage);
+    }
+
+    // --- Lightweight Fast Order Queue (Metadata only, < 1.5 KB payload) ---
     if (pathname === '/api/orders' && method === 'GET') {
-        return sendJSON(orders);
+        const fastOrders = orders.map(o => {
+            return {
+                id: o.id,
+                country: o.country,
+                activeDevice: o.activeDevice,
+                service: o.service,
+                model: o.model,
+                identifier: o.identifier,
+                email: o.email,
+                totalPrice: o.totalPrice,
+                paymentMethod: o.paymentMethod,
+                paymentAddress: o.paymentAddress,
+                status: o.status,
+                senderName: o.senderName || '',
+                hasReceipt: !!o.receiptImage,
+                receiptImageUrl: o.receiptImage ? `/api/orders/${o.id}/receipt` : '',
+                createdAt: o.createdAt,
+                updatedAt: o.updatedAt
+            };
+        });
+        return sendJSON(fastOrders);
     }
 
     // --- PWA Web App Manifest ---

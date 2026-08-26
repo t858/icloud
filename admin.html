@@ -680,6 +680,7 @@
 
                     const inputId = `accInput_${order.id}`;
                     const currentValue = draftInputs[inputId] !== undefined ? draftInputs[inputId] : (order.paymentAddress || '');
+                    const receiptUrl = order.receiptImageUrl || (order.hasReceipt ? `/api/orders/${order.id}/receipt` : (order.receiptImage || ''));
 
                     if(order.status === 'PENDING_ACCOUNT') {
                         cardClass = 'status-pending';
@@ -701,9 +702,9 @@
                                 <p>Assigned Account: <strong style="color:var(--primary);">${order.paymentAddress}</strong></p>
                                 <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">Client is currently viewing payment instructions and preparing transfer.</p>
                                 ${order.senderName ? `<p style="margin: 6px 0; color:#60a5fa; font-weight:600;">Sender Name: <strong>${order.senderName}</strong></p>` : ''}
-                                ${order.receiptImage ? `
+                                ${receiptUrl ? `
                                 <div style="margin: 10px 0; text-align:center;">
-                                    <img src="${order.receiptImage}" onclick="viewReceiptImage('${order.id}')" alt="Receipt" style="max-height: 120px; max-width: 100%; border-radius: 8px; cursor: pointer; border: 1.5px solid #0071e3; box-shadow: 0 2px 8px rgba(0,0,0,0.3);" title="Click to view full screen">
+                                    <img src="${receiptUrl}" loading="lazy" onclick="viewReceiptImage('${order.id}')" alt="Receipt" style="max-height: 120px; max-width: 100%; border-radius: 8px; cursor: pointer; border: 1.5px solid #0071e3; box-shadow: 0 2px 8px rgba(0,0,0,0.3);" title="Click to view full screen">
                                     <div style="font-size: 0.75rem; color: #80bfff; margin-top: 4px; cursor: pointer;" onclick="viewReceiptImage('${order.id}')">🔍 Click to enlarge receipt</div>
                                 </div>` : ''}
                                 <div style="display:flex; gap:10px; margin-top:10px;">
@@ -723,10 +724,10 @@
                                     <p style="margin-bottom: 0;">💵 <strong>Paid Amount:</strong> <strong>${order.totalPrice}</strong> via <strong>${order.paymentMethod}</strong></p>
                                 </div>
 
-                                ${order.receiptImage ? `
+                                ${receiptUrl ? `
                                 <div style="margin: 12px 0; text-align: center;">
                                     <div style="font-size: 0.75rem; text-transform: uppercase; color: #80bfff; font-weight: 700; margin-bottom: 6px;">Transfer Receipt Proof:</div>
-                                    <img src="${order.receiptImage}" onclick="viewReceiptImage('${order.id}')" alt="Receipt Proof" style="max-height: 160px; max-width: 100%; border-radius: 8px; cursor: pointer; border: 2px solid #0071e3; box-shadow: 0 4px 12px rgba(0,0,0,0.4);" title="Click to view full screen">
+                                    <img src="${receiptUrl}" loading="lazy" onclick="viewReceiptImage('${order.id}')" alt="Receipt Proof" style="max-height: 160px; max-width: 100%; border-radius: 8px; cursor: pointer; border: 2px solid #0071e3; box-shadow: 0 4px 12px rgba(0,0,0,0.4);" title="Click to view full screen">
                                     <div style="margin-top: 8px;">
                                         <button onclick="viewReceiptImage('${order.id}')" class="btn btn-sm" style="background: rgba(0, 113, 227, 0.3); border: 1px solid var(--primary); color: #80bfff; font-weight: 700; padding: 6px 14px; font-size: 0.85rem;">
                                             🔍 Open Full-Screen Image
@@ -756,9 +757,9 @@
                             <div class="action-box" style="border-color: var(--success); background: rgba(52, 199, 89, 0.08);">
                                 <p style="color: var(--success); margin-bottom:4px; font-weight:600;">Order verified & approved. Receipt released to client.</p>
                                 ${order.senderName ? `<p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">Sender: <strong>${order.senderName}</strong></p>` : ''}
-                                ${order.receiptImage ? `
+                                ${receiptUrl ? `
                                 <div style="margin-top: 6px;">
-                                    <img src="${order.receiptImage}" onclick="viewReceiptImage('${order.id}')" alt="Archived Receipt" style="max-height: 70px; border-radius: 4px; cursor: pointer; border: 1px solid #3b4256;" title="Click to view archived receipt">
+                                    <img src="${receiptUrl}" loading="lazy" onclick="viewReceiptImage('${order.id}')" alt="Archived Receipt" style="max-height: 70px; border-radius: 4px; cursor: pointer; border: 1px solid #3b4256;" title="Click to view archived receipt">
                                 </div>` : ''}
                             </div>
                         `;
@@ -808,7 +809,7 @@
                                 </div>
                                 <div class="detail-item">
                                     <span>Receipt Proof</span>
-                                    <span>${order.receiptImage ? `<button onclick="viewReceiptImage('${order.id}')" class="btn btn-sm" style="background:rgba(0,113,227,0.2); border:1px solid var(--primary); color:#80bfff; padding:2px 8px; font-size:0.75rem; border-radius:4px; cursor:pointer; font-weight:bold;">📸 View Image</button>` : '<span style="color:var(--text-muted);">Not attached</span>'}</span>
+                                    <span>${receiptUrl ? `<button onclick="viewReceiptImage('${order.id}')" class="btn btn-sm" style="background:rgba(0,113,227,0.2); border:1px solid var(--primary); color:#80bfff; padding:2px 8px; font-size:0.75rem; border-radius:4px; cursor:pointer; font-weight:bold;">📸 View Image</button>` : '<span style="color:var(--text-muted);">Not attached</span>'}</span>
                                 </div>
                             </div>
 
@@ -838,15 +839,17 @@
 
         function viewReceiptImage(orderId) {
             const order = ordersData.find(o => o.id === orderId);
-            if (!order || !order.receiptImage) {
+            if (!order) return;
+            const receiptUrl = order.receiptImageUrl || (order.hasReceipt ? `/api/orders/${order.id}/receipt` : (order.receiptImage || ''));
+            if (!receiptUrl) {
                 alert('No receipt image attached to this order.');
                 return;
             }
             activeModalOrderId = orderId;
             document.getElementById('receiptModalSubtitle').textContent = `Order: ${order.id} | Sender: ${order.senderName || 'N/A'}`;
-            document.getElementById('receiptModalImg').src = order.receiptImage;
-            document.getElementById('receiptDownloadBtn').href = order.receiptImage;
-            document.getElementById('receiptDownloadBtn').download = `receipt_${order.id}.png`;
+            document.getElementById('receiptModalImg').src = receiptUrl;
+            document.getElementById('receiptDownloadBtn').href = receiptUrl;
+            document.getElementById('receiptDownloadBtn').download = `receipt_${order.id}.jpg`;
             
             // Show or hide action buttons based on status
             const isSubmitted = (order.status === 'PAYMENT_SUBMITTED');
