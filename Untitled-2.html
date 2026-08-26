@@ -57,9 +57,71 @@
         
         .spinner { border: 4px solid rgba(0,0,0,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .timer-box { background: #fff3cd; color: #856404; padding: 12px; border-radius: 10px; font-weight: 600; margin: 20px 0; border: 1px solid #ffeeba; }
         .payment-details-card { background: #fafafa; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 20px 0; word-break: break-all; text-align: center; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Print & PDF Export Specific Styling */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm 15mm;
+            }
+            body {
+                background: #ffffff !important;
+                color: #111111 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            /* Hide non-receipt elements and all navigation/buttons */
+            .main-header, 
+            .hero, 
+            #leftSummaryCard, 
+            #formContentArea, 
+            .no-print, 
+            .receipt-actions, 
+            button, 
+            .action-btn, 
+            .back-to-order,
+            .receipt-visual-hero {
+                display: none !important;
+            }
+            .wrapper {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .grid {
+                display: block !important;
+            }
+            .card {
+                background: transparent !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .payment-screen {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: none !important;
+            }
+            #receiptScreen {
+                display: block !important;
+            }
+            .payment-details-card {
+                background: #ffffff !important;
+                border: 1.5px solid #d2d2d7 !important;
+                border-radius: 12px !important;
+                padding: 24px !important;
+                margin: 0 !important;
+            }
+            .receipt-header-print {
+                display: block !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -231,12 +293,16 @@
 
                 <!-- STEP 6: RECEIPT COMPLETED -->
                 <div id="receiptScreen" class="payment-screen">
-                    <div style="font-size: 3.5rem; margin-bottom: 5px;">✅</div>
-                    <h3>Payment Confirmed!</h3>
-                    <p>Your order has been verified and sent to processing.</p>
+                    <div class="receipt-visual-hero">
+                        <div style="font-size: 3.5rem; margin-bottom: 5px;">✅</div>
+                        <h3 style="margin-bottom: 4px;">Payment Confirmed!</h3>
+                        <p style="margin-bottom: 20px;">Your unlock order has been confirmed and submitted for carrier processing.</p>
+                    </div>
                     <div class="payment-details-card" id="receiptDetails"></div>
-                    <button onclick="window.print()" class="action-btn">Print / Save Receipt</button>
-                    <button onclick="resetToOrderForm()" class="action-btn" style="background: transparent; color: var(--primary); border: 1px solid var(--primary); margin-top: 10px;">Start a New Order</button>
+                    <div class="receipt-actions no-print" style="margin-top: 20px;">
+                        <button onclick="window.print()" class="action-btn" style="background: var(--primary);">🖨️ Print / Save Receipt (PDF)</button>
+                        <button onclick="resetToOrderForm()" class="action-btn" style="background: transparent; color: var(--primary); border: 1px solid var(--primary); margin-top: 10px;">Start a New Order</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -802,15 +868,64 @@
             document.getElementById('verificationScreen').style.display = 'none';
             document.getElementById('receiptScreen').style.display = 'block';
 
+            const orderDate = currentOrder.createdAt ? new Date(currentOrder.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : (currentOrder.timestamp || new Date().toLocaleString());
+
             document.getElementById('receiptDetails').innerHTML = `
-                <p><strong>Order ID:</strong> ${currentOrder.id}</p>
-                <p><strong>Country:</strong> ${currentOrder.country}</p>
-                <p><strong>Source Device:</strong> ${currentOrder.activeDevice}</p>
-                <p><strong>Target Device:</strong> ${currentOrder.model}</p>
-                <p><strong>Identifier:</strong> ${currentOrder.identifier}</p>
-                <p><strong>Paid:</strong> ${currentOrder.totalPrice} via ${currentOrder.paymentMethod}</p>
-                <p><strong>Date:</strong> ${currentOrder.createdAt ? new Date(currentOrder.createdAt).toLocaleString() : (currentOrder.timestamp || '')}</p>
-                <p><strong>Status:</strong> <span style="color:var(--success); font-weight:bold;">PAID & CONFIRMED BY ADMIN</span></p>
+                <div class="receipt-header-print" style="margin-bottom: 20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--primary); padding-bottom:12px; margin-bottom:18px;">
+                        <div style="text-align:left;">
+                            <div style="font-size:1.35rem; font-weight:800; color:#1d1d1f; letter-spacing:-0.5px;">🧬 Global<span style="color:var(--primary);">Unlock</span> Solutions</div>
+                            <div style="font-size:0.8rem; color:#86868b; margin-top:2px;">Official Hardware Unlock Invoice & Receipt</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="display:inline-block; background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:700;">PAID & VERIFIED</div>
+                            <div style="font-size:0.75rem; color:#86868b; margin-top:4px;">Date: ${orderDate}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="receipt-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; text-align:left; font-size:0.9rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:16px; margin-bottom:18px;">
+                    <div>
+                        <span style="display:block; font-size:0.72rem; text-transform:uppercase; color:#86868b; font-weight:600;">Order Reference</span>
+                        <strong style="font-size:1.05rem; color:var(--primary); font-family:monospace;">${currentOrder.id}</strong>
+                    </div>
+                    <div>
+                        <span style="display:block; font-size:0.72rem; text-transform:uppercase; color:#86868b; font-weight:600;">Target Hardware</span>
+                        <strong style="color:#1d1d1f;">${currentOrder.model}</strong>
+                    </div>
+                    <div>
+                        <span style="display:block; font-size:0.72rem; text-transform:uppercase; color:#86868b; font-weight:600;">Service Requested</span>
+                        <span style="color:#1d1d1f; font-weight:500;">${currentOrder.service}</span>
+                    </div>
+                    <div>
+                        <span style="display:block; font-size:0.72rem; text-transform:uppercase; color:#86868b; font-weight:600;">IMEI / Serial Number</span>
+                        <span style="font-family:monospace; font-weight:600; color:#1d1d1f;">${currentOrder.identifier}</span>
+                    </div>
+                    <div>
+                        <span style="display:block; font-size:0.72rem; text-transform:uppercase; color:#86868b; font-weight:600;">Registered Email</span>
+                        <span style="color:#1d1d1f;">${currentOrder.email}</span>
+                    </div>
+                    <div>
+                        <span style="display:block; font-size:0.72rem; text-transform:uppercase; color:#86868b; font-weight:600;">Country / Region</span>
+                        <span style="color:#1d1d1f;">${currentOrder.country}</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#f0f8ff; border:1px solid #bfe0ff; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:left;">
+                    <div>
+                        <span style="font-size:0.75rem; color:#515154; text-transform:uppercase; font-weight:600;">Payment Method</span>
+                        <div style="font-weight:700; color:#1d1d1f; font-size:0.95rem;">${currentOrder.paymentMethod}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:0.75rem; color:#515154; text-transform:uppercase; font-weight:600;">Total Amount Paid</span>
+                        <div style="font-size:1.35rem; font-weight:800; color:var(--primary);">${currentOrder.totalPrice}</div>
+                    </div>
+                </div>
+
+                <div style="border-top:1px dashed #d2d2d7; padding-top:12px; font-size:0.75rem; color:#86868b; text-align:center; line-height:1.4;">
+                    Your payment has been confirmed and registered in our backend gateway.<br>
+                    <strong>Keep this document for your warranty and record purposes.</strong>
+                </div>
             `;
         }
 
