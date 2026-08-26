@@ -246,86 +246,73 @@
         const BROADCAST_CHANNEL = new BroadcastChannel('global_unlock_sync');
         
         const defaultPricing = [
-            // --- APPLE IPHONE SERIES (Starting at iPhone X up to iPhone 16 Pro Max) ---
-            { id: "ip16pm", label: "iPhone 16 Pro Max", basePrice: 95, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip16p", label: "iPhone 16 Pro", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip16plus", label: "iPhone 16 Plus", basePrice: 85, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip16", label: "iPhone 16", basePrice: 85, category: "Apple iPhone", brand: "Apple" },
+            // --- APPLE IPHONE SERIES ---
+            { id: "ip17pm", label: "iPhone 17 Pro Max", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip17p", label: "iPhone 17 Pro", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip17plus", label: "iPhone 17 Plus", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip17", label: "iPhone 17", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip16pm", label: "iPhone 16 Pro Max", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip16p", label: "iPhone 16 Pro", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip16plus", label: "iPhone 16 Plus", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip16", label: "iPhone 16", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
             { id: "ip15pm", label: "iPhone 15 Pro Max", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
             { id: "ip15p", label: "iPhone 15 Pro", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip15plus", label: "iPhone 15 Plus", basePrice: 75, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip15", label: "iPhone 15", basePrice: 75, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip14pm", label: "iPhone 14 Pro Max", basePrice: 75, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip15plus", label: "iPhone 15 Plus", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip15", label: "iPhone 15", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip14pm", label: "iPhone 14 Pro Max", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
             { id: "ip14p", label: "iPhone 14 Pro", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
             { id: "ip14plus", label: "iPhone 14 Plus", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip14", label: "iPhone 14", basePrice: 65, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip13pm", label: "iPhone 13 Pro Max", basePrice: 65, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip13p", label: "iPhone 13 Pro", basePrice: 65, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip13", label: "iPhone 13", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip13mini", label: "iPhone 13 mini", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip14", label: "iPhone 14", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip13pm", label: "iPhone 13 Pro Max", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip13p", label: "iPhone 13 Pro", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip13", label: "iPhone 13", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip13mini", label: "iPhone 13 Mini", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
             { id: "ip12pm", label: "iPhone 12 Pro Max", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
             { id: "ip12p", label: "iPhone 12 Pro", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip12", label: "iPhone 12", basePrice: 55, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip12mini", label: "iPhone 12 mini", basePrice: 55, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip11pm", label: "iPhone 11 Pro Max", basePrice: 55, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip11p", label: "iPhone 11 Pro", basePrice: 55, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip11", label: "iPhone 11", basePrice: 50, category: "Apple iPhone", brand: "Apple" },
-            { id: "ipse3", label: "iPhone SE (3rd Gen)", basePrice: 50, category: "Apple iPhone", brand: "Apple" },
-            { id: "ipse2", label: "iPhone SE (2nd Gen)", basePrice: 45, category: "Apple iPhone", brand: "Apple" },
-            { id: "ipxsmax", label: "iPhone XS Max", basePrice: 45, category: "Apple iPhone", brand: "Apple" },
-            { id: "ipxs", label: "iPhone XS", basePrice: 45, category: "Apple iPhone", brand: "Apple" },
-            { id: "ipxr", label: "iPhone XR", basePrice: 45, category: "Apple iPhone", brand: "Apple" },
-            { id: "ipx", label: "iPhone X", basePrice: 40, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip12", label: "iPhone 12", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip12mini", label: "iPhone 12 Mini", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip11pm", label: "iPhone 11 Pro Max", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip11p", label: "iPhone 11 Pro", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
+            { id: "ip11", label: "iPhone 11", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
 
-            // --- APPLE IPAD SERIES (Starting at iPad Air 13-inch up to iPad Pro M4) ---
-            { id: "ipadpro13m4", label: "iPad Pro 13-inch (M4)", basePrice: 90, category: "Apple iPad", brand: "Apple" },
-            { id: "ipadpro129", label: "iPad Pro 12.9-inch (M2 / 6th Gen)", basePrice: 80, category: "Apple iPad", brand: "Apple" },
-            { id: "ipadpro11", label: "iPad Pro 11-inch (M4 / 4th Gen)", basePrice: 75, category: "Apple iPad", brand: "Apple" },
-            { id: "ipadair13m2", label: "iPad Air 13-inch (M2)", basePrice: 75, category: "Apple iPad", brand: "Apple" },
-            { id: "ipadair11m2", label: "iPad Air 11-inch (M2 / 5th Gen)", basePrice: 70, category: "Apple iPad", brand: "Apple" },
-            { id: "ipad10", label: "iPad 10th Gen", basePrice: 60, category: "Apple iPad", brand: "Apple" },
-            { id: "ipadmini6", label: "iPad mini 6th Gen", basePrice: 55, category: "Apple iPad", brand: "Apple" },
+            // --- APPLE IPAD SERIES ---
+            { id: "ipadstd", label: "iPad (Standard)", basePrice: 60, category: "Apple iPad", brand: "Apple" },
+            { id: "ipadair", label: "iPad Air", basePrice: 70, category: "Apple iPad", brand: "Apple" },
+            { id: "ipadpro", label: "iPad Pro", basePrice: 80, category: "Apple iPad", brand: "Apple" },
 
             // --- APPLE MACBOOK SERIES ---
-            { id: "mbp16m3", label: "MacBook Pro 16-inch (M3 Max / Pro / M2 / M1)", basePrice: 110, category: "Apple MacBook", brand: "Apple" },
-            { id: "mbp14m3", label: "MacBook Pro 14-inch (M3 / M2 / M1)", basePrice: 100, category: "Apple MacBook", brand: "Apple" },
-            { id: "mbp13m2", label: "MacBook Pro 13-inch (M2 / M1 / Intel)", basePrice: 90, category: "Apple MacBook", brand: "Apple" },
-            { id: "mba15m3", label: "MacBook Air 15-inch (M3 / M2)", basePrice: 95, category: "Apple MacBook", brand: "Apple" },
-            { id: "mba13m3", label: "MacBook Air 13-inch (M3 / M2 / M1)", basePrice: 85, category: "Apple MacBook", brand: "Apple" },
+            { id: "mba", label: "MacBook Air", basePrice: 100, category: "Apple MacBook", brand: "Apple" },
+            { id: "mbp", label: "MacBook Pro", basePrice: 120, category: "Apple MacBook", brand: "Apple" },
 
-            // --- SAMSUNG GALAXY S SERIES (Starting at Galaxy S24 Series down to S20) ---
-            { id: "s24u", label: "Samsung Galaxy S24 Ultra", basePrice: 85, category: "Samsung Galaxy S Series", brand: "Samsung" },
-            { id: "s24p", label: "Samsung Galaxy S24+", basePrice: 80, category: "Samsung Galaxy S Series", brand: "Samsung" },
-            { id: "s24", label: "Samsung Galaxy S24", basePrice: 75, category: "Samsung Galaxy S Series", brand: "Samsung" },
-            { id: "s23u", label: "Samsung Galaxy S23 Ultra", basePrice: 75, category: "Samsung Galaxy S Series", brand: "Samsung" },
-            { id: "s23p", label: "Samsung Galaxy S23+", basePrice: 70, category: "Samsung Galaxy S Series", brand: "Samsung" },
-            { id: "s23", label: "Samsung Galaxy S23 / S23 FE", basePrice: 65, category: "Samsung Galaxy S Series", brand: "Samsung" },
-            { id: "s22u", label: "Samsung Galaxy S22 Ultra", basePrice: 65, category: "Samsung Galaxy S Series", brand: "Samsung" },
-            { id: "s22p", label: "Samsung Galaxy S22+", basePrice: 60, category: "Samsung Galaxy S Series", brand: "Samsung" },
-            { id: "s22", label: "Samsung Galaxy S22", basePrice: 55, category: "Samsung Galaxy S Series", brand: "Samsung" },
-            { id: "s21u", label: "Samsung Galaxy S21 Ultra / S21+ / S21", basePrice: 50, category: "Samsung Galaxy S Series", brand: "Samsung" },
-            { id: "s20u", label: "Samsung Galaxy S20 Ultra / S20+ / S20", basePrice: 45, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            // --- APPLE WATCH SERIES ---
+            { id: "aw8", label: "Apple Watch Series 8", basePrice: 70, category: "Apple Watch", brand: "Apple" },
+            { id: "aw9", label: "Apple Watch Series 9", basePrice: 80, category: "Apple Watch", brand: "Apple" },
+            { id: "awu", label: "Apple Watch Ultra", basePrice: 80, category: "Apple Watch", brand: "Apple" },
 
-            // --- SAMSUNG GALAXY Z FOLD SERIES (Folds) ---
-            { id: "zfold6", label: "Samsung Galaxy Z Fold 6", basePrice: 105, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
-            { id: "zfold5", label: "Samsung Galaxy Z Fold 5", basePrice: 95, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
-            { id: "zfold4", label: "Samsung Galaxy Z Fold 4", basePrice: 85, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
-            { id: "zfold3", label: "Samsung Galaxy Z Fold 3", basePrice: 75, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
-            { id: "zfold2", label: "Samsung Galaxy Z Fold 2", basePrice: 65, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
+            // --- SAMSUNG GALAXY S SERIES ---
+            { id: "s26u", label: "Galaxy S26 Ultra", basePrice: 100, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s26p", label: "Galaxy S26 / S26+", basePrice: 90, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s25u", label: "Galaxy S25 Ultra", basePrice: 85, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s25p", label: "Galaxy S25 / S25+", basePrice: 80, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s24u", label: "Galaxy S24 Ultra", basePrice: 80, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s24p", label: "Galaxy S24 / S24+", basePrice: 75, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s23u", label: "Galaxy S23 Ultra", basePrice: 75, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s23p", label: "Galaxy S23 / S23+", basePrice: 70, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s22u", label: "Galaxy S22 Ultra", basePrice: 70, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s22p", label: "Galaxy S22 / S22+", basePrice: 65, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s21u", label: "Galaxy S21 Ultra", basePrice: 65, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s21p", label: "Galaxy S21 / S21+", basePrice: 60, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s20u", label: "Galaxy S20 Ultra", basePrice: 60, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s20p", label: "Galaxy S20 / S20+", basePrice: 55, category: "Samsung Galaxy S Series", brand: "Samsung" },
+            { id: "s10p", label: "Galaxy S10 / S10+", basePrice: 50, category: "Samsung Galaxy S Series", brand: "Samsung" },
 
-            // --- SAMSUNG GALAXY Z FLIP SERIES (Flips) ---
-            { id: "zflip6", label: "Samsung Galaxy Z Flip 6", basePrice: 90, category: "Samsung Galaxy Z Flip Series", brand: "Samsung" },
-            { id: "zflip5", label: "Samsung Galaxy Z Flip 5", basePrice: 80, category: "Samsung Galaxy Z Flip Series", brand: "Samsung" },
-            { id: "zflip4", label: "Samsung Galaxy Z Flip 4", basePrice: 70, category: "Samsung Galaxy Z Flip Series", brand: "Samsung" },
-            { id: "zflip3", label: "Samsung Galaxy Z Flip 3", basePrice: 60, category: "Samsung Galaxy Z Flip Series", brand: "Samsung" },
-
-            // --- SAMSUNG GALAXY NOTE & A SERIES ---
-            { id: "note20u", label: "Samsung Galaxy Note 20 Ultra / Note 20", basePrice: 55, category: "Samsung Galaxy Note & A Series", brand: "Samsung" },
-            { id: "gala55", label: "Samsung Galaxy A55 / A54 / A53", basePrice: 40, category: "Samsung Galaxy Note & A Series", brand: "Samsung" },
-            { id: "gala35", label: "Samsung Galaxy A35 / A34", basePrice: 35, category: "Samsung Galaxy Note & A Series", brand: "Samsung" }
+            // --- SAMSUNG GALAXY Z FOLD SERIES ---
+            { id: "zfold5", label: "Galaxy Z Fold 5", basePrice: 85, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
+            { id: "zfold4", label: "Galaxy Z Fold 4", basePrice: 80, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" },
+            { id: "zfold3", label: "Galaxy Z Fold 3", basePrice: 70, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" }
         ];
 
-        localStorage.setItem('unlock_pricing_v7', JSON.stringify(defaultPricing));
+        localStorage.setItem('unlock_pricing_v8', JSON.stringify(defaultPricing));
         if(!localStorage.getItem('unlock_orders_v2')) localStorage.setItem('unlock_orders_v2', JSON.stringify([]));
 
         let currentOrder = null;
@@ -456,7 +443,7 @@
         }
 
         function initData() {
-            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v7'));
+            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v8'));
             const modelDropdown = document.getElementById('deviceModel');
             
             modelDropdown.innerHTML = '<option value="" disabled selected>-- Select target device model --</option>';
@@ -506,7 +493,7 @@
         }
 
         function calculateTotal() {
-            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v7'));
+            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v8'));
             const serviceSelect = document.getElementById('serviceType');
             const modelDropdown = document.getElementById('deviceModel');
             
