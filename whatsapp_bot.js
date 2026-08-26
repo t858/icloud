@@ -13,6 +13,12 @@ class WhatsAppBot {
         this.recentlySentMessages = new Set();
     }
 
+    getPublicBaseUrl() {
+        if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
+        if (process.env.BASE_URL) return process.env.BASE_URL;
+        return 'https://icloud-o62c.onrender.com';
+    }
+
     registerSentMessage(text) {
         if (!text) return;
         const clean = text.trim();
@@ -210,7 +216,7 @@ class WhatsAppBot {
             } else if (submittedOrders.length > 1) {
                 const list = submittedOrders.map((o, i) => `${i + 1}. ${o.id} — ${o.model} (${o.totalPrice})`).join('\n');
                 const msg = `⚠️ *${submittedOrders.length} orders* are awaiting confirmation:\n\n${list}\n\n` +
-                            `Please use the *Admin Dashboard* to confirm them:\n👉 http://localhost:3000/admin`;
+                            `Please use the *Admin Dashboard* to confirm them:\n👉 ${this.getPublicBaseUrl()}/admin`;
                 await this.sendMessage(senderJid, msg);
                 return;
             } else {
@@ -254,7 +260,7 @@ class WhatsAppBot {
             } else if (submittedOrders.length > 1) {
                 const list = submittedOrders.map((o, i) => `${i + 1}. ${o.id} — ${o.model} (${o.totalPrice})`).join('\n');
                 const msg = `⚠️ *${submittedOrders.length} orders* are active:\n\n${list}\n\n` +
-                            `Please use the *Admin Dashboard* to reject/manage them:\n👉 http://localhost:3000/admin`;
+                            `Please use the *Admin Dashboard* to reject/manage them:\n👉 ${this.getPublicBaseUrl()}/admin`;
                 await this.sendMessage(senderJid, msg);
                 return;
             } else {
@@ -288,7 +294,7 @@ class WhatsAppBot {
             } else if (pendingOrders.length > 1) {
                 const list = pendingOrders.map((o, i) => `${i + 1}. ${o.id} — ${o.model} (${o.totalPrice})`).join('\n');
                 const msg = `⚠️ *${pendingOrders.length} orders* are waiting for payment addresses:\n\n${list}\n\n` +
-                            `Please use the *Admin Dashboard* to assign details:\n👉 http://localhost:3000/admin`;
+                            `Please use the *Admin Dashboard* to assign details:\n👉 ${this.getPublicBaseUrl()}/admin`;
                 await this.sendMessage(senderJid, msg);
                 return;
             }
