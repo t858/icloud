@@ -788,11 +788,14 @@
                                 <span>Client Email</span>
                                 <span>${order.email}</span>
                             </div>
-                            ${order.senderName ? `
                             <div class="detail-item">
                                 <span>Sender Name</span>
-                                <span style="color: #60a5fa; font-weight: bold;">${order.senderName}</span>
-                            </div>` : ''}
+                                <span style="color: #60a5fa; font-weight: bold;">${order.senderName || '<span style="color:var(--text-muted); font-weight:normal;">Not submitted</span>'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Receipt Proof</span>
+                                <span>${order.receiptImage ? `<button onclick="viewReceiptImage('${order.id}')" class="btn btn-sm" style="background:rgba(0,113,227,0.2); border:1px solid var(--primary); color:#80bfff; padding:2px 8px; font-size:0.75rem; border-radius:4px; cursor:pointer; font-weight:bold;">📸 View Image</button>` : '<span style="color:var(--text-muted);">Not attached</span>'}</span>
+                            </div>
                         </div>
 
                         ${actionHtml}

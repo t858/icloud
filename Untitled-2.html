@@ -421,11 +421,11 @@
                             <label style="font-weight: 700; color: #1d1d1f; font-size: 0.85rem; text-transform: uppercase;">
                                 2. Upload Receipt Screenshot <span style="color: #ff3b30;">*</span>
                             </label>
+                            <input type="file" id="receiptFileInput" accept="image/*" style="display: none;" onchange="handleReceiptFileSelect(event)">
                             <div id="dropZone" style="border: 2px dashed #0071e3; border-radius: 12px; padding: 22px; text-align: center; background: #f0f7ff; cursor: pointer; margin-top: 6px;" onclick="document.getElementById('receiptFileInput').click()">
                                 <div style="font-size: 2.2rem; margin-bottom: 6px;">📸</div>
-                                <div style="font-weight: 600; color: var(--primary); font-size: 0.95rem;">Tap to Choose Screenshot or Take Photo</div>
-                                <div style="font-size: 0.8rem; color: #86868b; margin-top: 4px;">PNG, JPG, JPEG or WEBP (Max 10MB)</div>
-                                <input type="file" id="receiptFileInput" accept="image/*" style="display: none;" onchange="handleReceiptFileSelect(event)">
+                                <div id="dropZoneText" style="font-weight: 600; color: var(--primary); font-size: 0.95rem;">Tap to Choose Screenshot or Take Photo</div>
+                                <div style="font-size: 0.8rem; color: #86868b; margin-top: 4px;">PNG, JPG, JPEG or WEBP</div>
                             </div>
                             
                             <!-- Image Preview Area -->
@@ -1021,51 +1021,52 @@
         }
 
         function handleReceiptFileSelect(event) {
-            const file = event.target.files[0];
+            const file = event.target.files && event.target.files[0];
             if (!file) return;
 
-            document.getElementById('dropZone').innerHTML = `<div style="font-size:1.8rem; margin-bottom:4px;">⏳</div><div style="font-weight:600; color:var(--primary); font-size:0.9rem;">Optimizing receipt image...</div>`;
+            const dropZoneText = document.getElementById('dropZoneText');
+            if (dropZoneText) dropZoneText.textContent = '⏳ Loading receipt image...';
 
-            compressReceiptImage(file, 1200, 0.78, (base64) => {
-                selectedReceiptBase64 = base64;
-                document.getElementById('receiptPreviewImg').src = selectedReceiptBase64;
-                document.getElementById('receiptFileName').textContent = `${file.name} (Ready)`;
-                document.getElementById('receiptPreviewContainer').style.display = 'block';
-                document.getElementById('dropZone').style.display = 'none';
-            });
-        }
-
-        function compressReceiptImage(file, maxDimension, quality, callback) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    let width = img.width;
-                    let height = img.height;
+                const rawData = e.target.result;
+                selectedReceiptBase64 = rawData; // Immediately set so it never fails!
 
-                    if (width > maxDimension || height > maxDimension) {
-                        if (width > height) {
-                            height = Math.round((height * maxDimension) / width);
-                            width = maxDimension;
-                        } else {
-                            width = Math.round((width * maxDimension) / height);
-                            height = maxDimension;
-                        }
-                    }
+                document.getElementById('receiptPreviewImg').src = selectedReceiptBase64;
+                document.getElementById('receiptFileName').textContent = `${file.name}`;
+                document.getElementById('receiptPreviewContainer').style.display = 'block';
+                document.getElementById('dropZone').style.display = 'none';
 
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-                    callback(compressedBase64);
-                };
-                img.onerror = function() {
-                    callback(e.target.result);
-                };
-                img.src = e.target.result;
+                // Try background canvas optimization to reduce upload size
+                try {
+                    const img = new Image();
+                    img.onload = function() {
+                        try {
+                            const maxDim = 1200;
+                            let w = img.width || 800;
+                            let h = img.height || 600;
+                            if (w > maxDim || h > maxDim) {
+                                if (w > h) {
+                                    h = Math.round((h * maxDim) / w);
+                                    w = maxDim;
+                                } else {
+                                    w = Math.round((w * maxDim) / h);
+                                    h = maxDim;
+                                }
+                            }
+                            const canvas = document.createElement('canvas');
+                            canvas.width = w;
+                            canvas.height = h;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+                            const compressed = canvas.toDataURL('image/jpeg', 0.82);
+                            if (compressed && compressed.length > 100) {
+                                selectedReceiptBase64 = compressed;
+                            }
+                        } catch(err) {}
+                    };
+                    img.src = rawData;
+                } catch(err) {}
             };
             reader.readAsDataURL(file);
         }
@@ -1073,16 +1074,13 @@
         function removeReceiptFile(event) {
             if (event) event.stopPropagation();
             selectedReceiptBase64 = '';
-            document.getElementById('receiptFileInput').value = '';
+            const input = document.getElementById('receiptFileInput');
+            if (input) input.value = '';
             document.getElementById('receiptPreviewImg').src = '';
             document.getElementById('receiptPreviewContainer').style.display = 'none';
             document.getElementById('dropZone').style.display = 'block';
-            document.getElementById('dropZone').innerHTML = `
-                <div style="font-size: 2.2rem; margin-bottom: 6px;">📸</div>
-                <div style="font-weight: 600; color: var(--primary); font-size: 0.95rem;">Tap to Choose Screenshot or Take Photo</div>
-                <div style="font-size: 0.8rem; color: #86868b; margin-top: 4px;">PNG, JPG, JPEG or WEBP (Max 10MB)</div>
-                <input type="file" id="receiptFileInput" accept="image/*" style="display: none;" onchange="handleReceiptFileSelect(event)">
-            `;
+            const dropZoneText = document.getElementById('dropZoneText');
+            if (dropZoneText) dropZoneText.textContent = 'Tap to Choose Screenshot or Take Photo';
         }
 
         // STAGE 3: Client Submits Payment Proof & Sender Name -> Wait for Admin Confirmation + WhatsApp Alert #2
