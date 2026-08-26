@@ -246,48 +246,66 @@
         const BROADCAST_CHANNEL = new BroadcastChannel('global_unlock_sync');
         
         const defaultPricing = [
-            // --- APPLE IPHONE SERIES ---
-            { id: "ip17pm", label: "iPhone 17 Pro Max", basePrice: 100, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip17p", label: "iPhone 17 Pro", basePrice: 95, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip17plus", label: "iPhone 17 Plus", basePrice: 90, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip17", label: "iPhone 17", basePrice: 85, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip16pm", label: "iPhone 16 Pro Max", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip16p", label: "iPhone 16 Pro", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip16plus", label: "iPhone 16 Plus", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip16", label: "iPhone 16", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip15pm", label: "iPhone 15 Pro Max", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip15p", label: "iPhone 15 Pro", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip15plus", label: "iPhone 15 Plus", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip15", label: "iPhone 15", basePrice: 80, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip14pm", label: "iPhone 14 Pro Max", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip14p", label: "iPhone 14 Pro", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip14plus", label: "iPhone 14 Plus", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip14", label: "iPhone 14", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip13pm", label: "iPhone 13 Pro Max", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip13p", label: "iPhone 13 Pro", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip13", label: "iPhone 13", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip13mini", label: "iPhone 13 Mini", basePrice: 70, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip12pm", label: "iPhone 12 Pro Max", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip12p", label: "iPhone 12 Pro", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip12", label: "iPhone 12", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip12mini", label: "iPhone 12 Mini", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip11pm", label: "iPhone 11 Pro Max", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip11p", label: "iPhone 11 Pro", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
-            { id: "ip11", label: "iPhone 11", basePrice: 60, category: "Apple iPhone", brand: "Apple" },
+            // --- IPHONE SERIES ---
+            { id: "ip17pm", label: "iPhone 17 Pro Max", basePrice: 100, category: "iPhone Series", brand: "Apple" },
+            { id: "ip17p", label: "iPhone 17 Pro", basePrice: 95, category: "iPhone Series", brand: "Apple" },
+            { id: "ip17air", label: "iPhone 17 Air", basePrice: 90, category: "iPhone Series", brand: "Apple" },
+            { id: "ip17", label: "iPhone 17", basePrice: 85, category: "iPhone Series", brand: "Apple" },
+            { id: "ip16pm", label: "iPhone 16 Pro Max", basePrice: 90, category: "iPhone Series", brand: "Apple" },
+            { id: "ip16p", label: "iPhone 16 Pro", basePrice: 85, category: "iPhone Series", brand: "Apple" },
+            { id: "ip16plus", label: "iPhone 16 Plus", basePrice: 80, category: "iPhone Series", brand: "Apple" },
+            { id: "ip16", label: "iPhone 16", basePrice: 75, category: "iPhone Series", brand: "Apple" },
+            { id: "ip15pm", label: "iPhone 15 Pro Max", basePrice: 85, category: "iPhone Series", brand: "Apple" },
+            { id: "ip15p", label: "iPhone 15 Pro", basePrice: 80, category: "iPhone Series", brand: "Apple" },
+            { id: "ip15plus", label: "iPhone 15 Plus", basePrice: 75, category: "iPhone Series", brand: "Apple" },
+            { id: "ip15", label: "iPhone 15", basePrice: 70, category: "iPhone Series", brand: "Apple" },
+            { id: "ip14pm", label: "iPhone 14 Pro Max", basePrice: 80, category: "iPhone Series", brand: "Apple" },
+            { id: "ip14p", label: "iPhone 14 Pro", basePrice: 75, category: "iPhone Series", brand: "Apple" },
+            { id: "ip14plus", label: "iPhone 14 Plus", basePrice: 70, category: "iPhone Series", brand: "Apple" },
+            { id: "ip14", label: "iPhone 14", basePrice: 65, category: "iPhone Series", brand: "Apple" },
+            { id: "ip13pm", label: "iPhone 13 Pro Max", basePrice: 75, category: "iPhone Series", brand: "Apple" },
+            { id: "ip13p", label: "iPhone 13 Pro", basePrice: 70, category: "iPhone Series", brand: "Apple" },
+            { id: "ip13", label: "iPhone 13", basePrice: 65, category: "iPhone Series", brand: "Apple" },
+            { id: "ip13mini", label: "iPhone 13 Mini", basePrice: 60, category: "iPhone Series", brand: "Apple" },
+            { id: "ip12pm", label: "iPhone 12 Pro Max", basePrice: 70, category: "iPhone Series", brand: "Apple" },
+            { id: "ip12p", label: "iPhone 12 Pro", basePrice: 65, category: "iPhone Series", brand: "Apple" },
+            { id: "ip12", label: "iPhone 12", basePrice: 60, category: "iPhone Series", brand: "Apple" },
+            { id: "ip12mini", label: "iPhone 12 Mini", basePrice: 55, category: "iPhone Series", brand: "Apple" },
+            { id: "ip11series", label: "iPhone 11 / 11 Pro / 11 Pro Max", basePrice: 60, category: "iPhone Series", brand: "Apple" },
 
-            // --- APPLE IPAD SERIES ---
-            { id: "ipadstd", label: "iPad (Standard)", basePrice: 60, category: "Apple iPad", brand: "Apple" },
-            { id: "ipadair", label: "iPad Air", basePrice: 70, category: "Apple iPad", brand: "Apple" },
-            { id: "ipadpro", label: "iPad Pro", basePrice: 80, category: "Apple iPad", brand: "Apple" },
+            // --- IPAD SERIES ---
+            { id: "ipadpro7", label: "iPad Pro (7th Gen, 2024–Present)", basePrice: 100, category: "iPad Series", brand: "Apple" },
+            { id: "ipadpro6", label: "iPad Pro (6th Gen, 2022)", basePrice: 95, category: "iPad Series", brand: "Apple" },
+            { id: "ipadpro5", label: "iPad Pro (5th Gen, 2021)", basePrice: 90, category: "iPad Series", brand: "Apple" },
+            { id: "ipadpro4", label: "iPad Pro (4th Gen, 2020)", basePrice: 85, category: "iPad Series", brand: "Apple" },
+            { id: "ipadpro3", label: "iPad Pro (3rd Gen, 2018)", basePrice: 80, category: "iPad Series", brand: "Apple" },
+            { id: "ipadpro2", label: "iPad Pro (2nd Gen, 2017)", basePrice: 75, category: "iPad Series", brand: "Apple" },
+            { id: "ipadpro1", label: "iPad Pro (1st Gen, 2015)", basePrice: 70, category: "iPad Series", brand: "Apple" },
+            { id: "ipadair6", label: "iPad Air (6th Gen, 2024–Present)", basePrice: 90, category: "iPad Series", brand: "Apple" },
+            { id: "ipadair5", label: "iPad Air (5th Gen, 2022)", basePrice: 85, category: "iPad Series", brand: "Apple" },
+            { id: "ipadair4", label: "iPad Air (4th Gen, 2020)", basePrice: 80, category: "iPad Series", brand: "Apple" },
+            { id: "ipadair3", label: "iPad Air (3rd Gen, 2019)", basePrice: 75, category: "iPad Series", brand: "Apple" },
+            { id: "ipadair2", label: "iPad Air 2 (2014)", basePrice: 70, category: "iPad Series", brand: "Apple" },
+            { id: "ipadair1", label: "iPad Air (1st Gen, 2013)", basePrice: 65, category: "iPad Series", brand: "Apple" },
+            { id: "ipadstd", label: "iPad (Standard, 2017–Present)", basePrice: 60, category: "iPad Series", brand: "Apple" },
 
-            // --- APPLE MACBOOK SERIES ---
-            { id: "mba", label: "MacBook Air", basePrice: 100, category: "Apple MacBook", brand: "Apple" },
-            { id: "mbp", label: "MacBook Pro", basePrice: 120, category: "Apple MacBook", brand: "Apple" },
+            // --- MACBOOK SERIES ---
+            { id: "mbpm3m2", label: "MacBook Pro (M3 / M2, 2023–Present)", basePrice: 120, category: "MacBook Series", brand: "Apple" },
+            { id: "mbpm1", label: "MacBook Pro (M1, 2020–2021)", basePrice: 115, category: "MacBook Series", brand: "Apple" },
+            { id: "mbpintel", label: "MacBook Pro (Intel Touch Bar, 2016–2020)", basePrice: 110, category: "MacBook Series", brand: "Apple" },
+            { id: "mbpretina15", label: "MacBook Pro (Retina, 2015)", basePrice: 105, category: "MacBook Series", brand: "Apple" },
+            { id: "mbpretina13", label: "MacBook Pro (Retina, 2013–2014)", basePrice: 100, category: "MacBook Series", brand: "Apple" },
+            { id: "mbam3m2", label: "MacBook Air (M3 / M2, 2022–Present)", basePrice: 100, category: "MacBook Series", brand: "Apple" },
+            { id: "mbam1", label: "MacBook Air (M1, 2020)", basePrice: 95, category: "MacBook Series", brand: "Apple" },
+            { id: "mbaretina", label: "MacBook Air (Retina, 2018–2019)", basePrice: 90, category: "MacBook Series", brand: "Apple" },
+            { id: "mba13_2017", label: "MacBook Air (13-inch, 2017)", basePrice: 85, category: "MacBook Series", brand: "Apple" },
+            { id: "mba13_2015", label: "MacBook Air (13-inch, 2015)", basePrice: 80, category: "MacBook Series", brand: "Apple" },
+            { id: "mba13_2013", label: "MacBook Air (13-inch, 2013–2014)", basePrice: 75, category: "MacBook Series", brand: "Apple" },
 
             // --- APPLE WATCH SERIES ---
-            { id: "aw8", label: "Apple Watch Series 8", basePrice: 70, category: "Apple Watch", brand: "Apple" },
-            { id: "aw9", label: "Apple Watch Series 9", basePrice: 80, category: "Apple Watch", brand: "Apple" },
-            { id: "awu", label: "Apple Watch Ultra", basePrice: 80, category: "Apple Watch", brand: "Apple" },
+            { id: "awu", label: "Apple Watch Ultra", basePrice: 80, category: "Apple Watch Series", brand: "Apple" },
+            { id: "aw9", label: "Apple Watch Series 9", basePrice: 80, category: "Apple Watch Series", brand: "Apple" },
+            { id: "aw8", label: "Apple Watch Series 8", basePrice: 70, category: "Apple Watch Series", brand: "Apple" },
 
             // --- SAMSUNG GALAXY S SERIES ---
             { id: "s26u", label: "Galaxy S26 Ultra", basePrice: 100, category: "Samsung Galaxy S Series", brand: "Samsung" },
@@ -312,7 +330,7 @@
             { id: "zfold3", label: "Galaxy Z Fold 3", basePrice: 70, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" }
         ];
 
-        localStorage.setItem('unlock_pricing_v9', JSON.stringify(defaultPricing));
+        localStorage.setItem('unlock_pricing_v10', JSON.stringify(defaultPricing));
         if(!localStorage.getItem('unlock_orders_v2')) localStorage.setItem('unlock_orders_v2', JSON.stringify([]));
 
         let currentOrder = null;
@@ -443,7 +461,7 @@
         }
 
         function initData() {
-            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v9'));
+            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v10'));
             const modelDropdown = document.getElementById('deviceModel');
             
             modelDropdown.innerHTML = '<option value="" disabled selected>-- Select target device model --</option>';
@@ -493,7 +511,7 @@
         }
 
         function calculateTotal() {
-            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v9'));
+            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v10'));
             const serviceSelect = document.getElementById('serviceType');
             const modelDropdown = document.getElementById('deviceModel');
             
