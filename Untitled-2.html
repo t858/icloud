@@ -121,6 +121,115 @@
             .receipt-header-print {
                 display: block !important;
             }
+            .activity-card {
+                display: none !important;
+            }
+        }
+
+        /* RECENT ACTIVITY STYLES */
+        .activity-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.04);
+            margin-top: 25px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e5ea;
+        }
+
+        .activity-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .live-badge {
+            background-color: #0071e3;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .notification-box {
+            display: flex;
+            align-items: center;
+            background-color: #fafafa;
+            border: 1px solid #e5e5ea;
+            border-radius: 16px;
+            padding: 16px;
+            gap: 16px;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .notification-box.fade-out {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        .device-icon {
+            background-color: #e8f2ff;
+            width: 48px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .activity-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: left;
+        }
+
+        .customer-info {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .service-info {
+            font-size: 0.85rem;
+            color: #86868b;
+        }
+
+        .status-tag {
+            margin-top: 2px;
+        }
+
+        .just-now-pill {
+            background-color: #eafff1;
+            color: #24b253;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 0.82rem;
+            color: #86868b;
+            margin-top: 18px;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -139,38 +248,61 @@
         </section>
 
         <div class="grid" id="mainGrid">
-            <!-- Left Hand Live Selection Panel (Only visible on page 1) -->
-            <div class="card" id="leftSummaryCard" style="align-self: start;">
-                <h2>Live Selection <span class="badge">Active</span></h2>
-                <div class="live-summary-box">
-                    <div class="live-summary-item">
-                        <span>Country:</span>
-                        <span id="liveCountry">Detecting...</span>
+            <!-- Left Hand Column (Live Selection & Recent Activity) -->
+            <div id="leftColumnArea" style="align-self: start;">
+                <div class="card" id="leftSummaryCard">
+                    <h2>Live Selection <span class="badge">Active</span></h2>
+                    <div class="live-summary-box">
+                        <div class="live-summary-item">
+                            <span>Country:</span>
+                            <span id="liveCountry">Detecting...</span>
+                        </div>
+                        <div class="live-summary-item">
+                            <span>Current Device:</span>
+                            <span id="liveActiveDevice">Detecting...</span>
+                        </div>
+                        <div class="live-summary-item">
+                            <span>Target Service:</span>
+                            <span id="liveService">--</span>
+                        </div>
+                        <div class="live-summary-item">
+                            <span>Target Model:</span>
+                            <span id="liveDevice">--</span>
+                        </div>
+                        <div class="live-summary-item">
+                            <span>IMEI/Serial:</span>
+                            <span id="liveImei">--</span>
+                        </div>
+                        <div class="live-summary-item">
+                            <span>Email:</span>
+                            <span id="liveEmail">--</span>
+                        </div>
+                        <div style="border-top: 1px dashed var(--border); margin-top: 12px; padding-top: 12px;" class="live-summary-item">
+                            <span>Total Amount:</span>
+                            <span id="liveTotal" class="price-accent">$0.00</span>
+                        </div>
                     </div>
-                    <div class="live-summary-item">
-                        <span>Current Device:</span>
-                        <span id="liveActiveDevice">Detecting...</span>
+                </div>
+
+                <!-- RECENT ACTIVITY WIDGET (HTML) -->
+                <div class="activity-card" id="activityCard">
+                    <div class="activity-header">
+                        <h2>Recent Activity</h2>
+                        <span class="live-badge">Live</span>
                     </div>
-                    <div class="live-summary-item">
-                        <span>Target Service:</span>
-                        <span id="liveService">--</span>
+
+                    <div class="notification-box" id="notificationBox">
+                        <div class="device-icon">📱</div>
+                        <div class="activity-details">
+                            <div class="customer-info" id="activityTitle">Daniel in London, UK</div>
+                            <div class="service-info" id="activitySub">Samsung Galaxy S26 Ultra - iCloud Removed</div>
+                            <div class="status-tag">
+                                <span class="just-now-pill" id="activityTime">Just now</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="live-summary-item">
-                        <span>Target Model:</span>
-                        <span id="liveDevice">--</span>
-                    </div>
-                    <div class="live-summary-item">
-                        <span>IMEI/Serial:</span>
-                        <span id="liveImei">--</span>
-                    </div>
-                    <div class="live-summary-item">
-                        <span>Email:</span>
-                        <span id="liveEmail">--</span>
-                    </div>
-                    <div style="border-top: 1px dashed var(--border); margin-top: 12px; padding-top: 12px;" class="live-summary-item">
-                        <span>Total Amount:</span>
-                        <span id="liveTotal" class="price-accent">$0.00</span>
-                    </div>
+
+                    <p class="footer-note">Join thousands of satisfied customers unlocking their devices globally.</p>
                 </div>
             </div>
 
@@ -340,28 +472,28 @@
             { id: "ip11series", label: "iPhone 11 / 11 Pro / 11 Pro Max", basePrice: 60, category: "iPhone Series", brand: "Apple" },
 
             // --- IPAD SERIES ---
-            { id: "ipadpro7", label: "iPad Pro (7th Gen, 2024–Present)", basePrice: 100, category: "iPad Series", brand: "Apple" },
+            { id: "ipadpro7", label: "iPad Pro (7th Gen, 2024–2026)", basePrice: 100, category: "iPad Series", brand: "Apple" },
             { id: "ipadpro6", label: "iPad Pro (6th Gen, 2022)", basePrice: 95, category: "iPad Series", brand: "Apple" },
             { id: "ipadpro5", label: "iPad Pro (5th Gen, 2021)", basePrice: 90, category: "iPad Series", brand: "Apple" },
             { id: "ipadpro4", label: "iPad Pro (4th Gen, 2020)", basePrice: 85, category: "iPad Series", brand: "Apple" },
             { id: "ipadpro3", label: "iPad Pro (3rd Gen, 2018)", basePrice: 80, category: "iPad Series", brand: "Apple" },
             { id: "ipadpro2", label: "iPad Pro (2nd Gen, 2017)", basePrice: 75, category: "iPad Series", brand: "Apple" },
             { id: "ipadpro1", label: "iPad Pro (1st Gen, 2015)", basePrice: 70, category: "iPad Series", brand: "Apple" },
-            { id: "ipadair6", label: "iPad Air (6th Gen, 2024–Present)", basePrice: 90, category: "iPad Series", brand: "Apple" },
+            { id: "ipadair6", label: "iPad Air (6th Gen, 2024–2026)", basePrice: 90, category: "iPad Series", brand: "Apple" },
             { id: "ipadair5", label: "iPad Air (5th Gen, 2022)", basePrice: 85, category: "iPad Series", brand: "Apple" },
             { id: "ipadair4", label: "iPad Air (4th Gen, 2020)", basePrice: 80, category: "iPad Series", brand: "Apple" },
             { id: "ipadair3", label: "iPad Air (3rd Gen, 2019)", basePrice: 75, category: "iPad Series", brand: "Apple" },
             { id: "ipadair2", label: "iPad Air 2 (2014)", basePrice: 70, category: "iPad Series", brand: "Apple" },
             { id: "ipadair1", label: "iPad Air (1st Gen, 2013)", basePrice: 65, category: "iPad Series", brand: "Apple" },
-            { id: "ipadstd", label: "iPad (Standard, 2017–Present)", basePrice: 60, category: "iPad Series", brand: "Apple" },
+            { id: "ipadstd", label: "iPad (Standard, 2017–2026)", basePrice: 60, category: "iPad Series", brand: "Apple" },
 
             // --- MACBOOK SERIES ---
-            { id: "mbpm3m2", label: "MacBook Pro (M3 / M2, 2023–Present)", basePrice: 120, category: "MacBook Series", brand: "Apple" },
+            { id: "mbpm3m2", label: "MacBook Pro (M3 / M2, 2023–2026)", basePrice: 120, category: "MacBook Series", brand: "Apple" },
             { id: "mbpm1", label: "MacBook Pro (M1, 2020–2021)", basePrice: 115, category: "MacBook Series", brand: "Apple" },
             { id: "mbpintel", label: "MacBook Pro (Intel Touch Bar, 2016–2020)", basePrice: 110, category: "MacBook Series", brand: "Apple" },
             { id: "mbpretina15", label: "MacBook Pro (Retina, 2015)", basePrice: 105, category: "MacBook Series", brand: "Apple" },
             { id: "mbpretina13", label: "MacBook Pro (Retina, 2013–2014)", basePrice: 100, category: "MacBook Series", brand: "Apple" },
-            { id: "mbam3m2", label: "MacBook Air (M3 / M2, 2022–Present)", basePrice: 100, category: "MacBook Series", brand: "Apple" },
+            { id: "mbam3m2", label: "MacBook Air (M3 / M2, 2022–2026)", basePrice: 100, category: "MacBook Series", brand: "Apple" },
             { id: "mbam1", label: "MacBook Air (M1, 2020)", basePrice: 95, category: "MacBook Series", brand: "Apple" },
             { id: "mbaretina", label: "MacBook Air (Retina, 2018–2019)", basePrice: 90, category: "MacBook Series", brand: "Apple" },
             { id: "mba13_2017", label: "MacBook Air (13-inch, 2017)", basePrice: 85, category: "MacBook Series", brand: "Apple" },
@@ -396,7 +528,7 @@
             { id: "zfold3", label: "Galaxy Z Fold 3", basePrice: 70, category: "Samsung Galaxy Z Fold Series", brand: "Samsung" }
         ];
 
-        localStorage.setItem('unlock_pricing_v10', JSON.stringify(defaultPricing));
+        localStorage.setItem('unlock_pricing_v11', JSON.stringify(defaultPricing));
         if(!localStorage.getItem('unlock_orders_v2')) localStorage.setItem('unlock_orders_v2', JSON.stringify([]));
 
         let currentOrder = null;
@@ -527,7 +659,7 @@
         }
 
         function initData() {
-            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v10'));
+            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v11'));
             const modelDropdown = document.getElementById('deviceModel');
             
             modelDropdown.innerHTML = '<option value="" disabled selected>-- Select target device model --</option>';
@@ -577,7 +709,7 @@
         }
 
         function calculateTotal() {
-            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v10'));
+            const pricingDb = JSON.parse(localStorage.getItem('unlock_pricing_v11'));
             const serviceSelect = document.getElementById('serviceType');
             const modelDropdown = document.getElementById('deviceModel');
             
@@ -648,8 +780,9 @@
                 body: JSON.stringify(currentOrder)
             }).catch(() => {});
 
-            // Hide Left Summary Card & adjust grid template to display Payment Method selection
-            document.getElementById('leftSummaryCard').style.display = 'none';
+            // Hide Left Column & adjust grid template to display Payment Method selection
+            if (document.getElementById('leftColumnArea')) document.getElementById('leftColumnArea').style.display = 'none';
+            else if (document.getElementById('leftSummaryCard')) document.getElementById('leftSummaryCard').style.display = 'none';
             document.getElementById('mainGrid').style.gridTemplateColumns = '1fr';
             document.getElementById('formContentArea').style.display = 'none';
             document.getElementById('displayToken').innerText = trackingToken;
@@ -946,13 +1079,78 @@
             if (window.innerWidth >= 768) {
                 document.getElementById('mainGrid').style.gridTemplateColumns = '1fr 1.2fr';
             }
-            document.getElementById('leftSummaryCard').style.display = 'block';
+            if (document.getElementById('leftColumnArea')) document.getElementById('leftColumnArea').style.display = 'block';
+            else if (document.getElementById('leftSummaryCard')) document.getElementById('leftSummaryCard').style.display = 'block';
             document.getElementById('formContentArea').style.display = 'block';
             
             autoDetectCountry();
             detectCurrentDevice();
             updateLiveSummary();
         }
+
+        // --- RECENT ACTIVITY ROTATION LOGIC ---
+        const firstNames = ["James", "Daniel", "Emma", "Liam", "Sophie", "Noah", "Olivia", "Ethan", "Ava", "Lucas", "Mia", "Oliver", "Charlotte", "Jack", "Amelia"];
+        const lastNames = ["Field", "Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Taylor", "Anderson", "Thomas", "White", "Harris", "Martin"];
+        
+        const locations = [
+            "Houston, Texas, USA", "Los Angeles, California, USA", "Chicago, Illinois, USA", "New York City, New York, USA",
+            "Toronto, Ontario, Canada", "Vancouver, BC, Canada", "Montreal, Quebec, Canada",
+            "Sydney, NSW, Australia", "Melbourne, Victoria, Australia", "Brisbane, Queensland, Australia",
+            "Auckland, New Zealand", "Wellington, New Zealand",
+            "London, UK", "Manchester, UK", "Birmingham, UK"
+        ];
+
+        const devices = [
+            "Samsung Galaxy S26 Ultra",
+            "Samsung Galaxy S25 Ultra",
+            "iPhone 16 Pro Max",
+            "iPhone 15 Pro Max",
+            "iPhone 14 Pro",
+            "Google Pixel 9 Pro"
+        ];
+
+        const services = [
+            "Network Carrier Bypass",
+            "iCloud Activation Removed",
+            "Full Device Profile Unlock",
+            "Carrier Lock Removed"
+        ];
+
+        const times = ["Just now", "1m ago", "2m ago"];
+
+        function getRandomItem(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function updateActivity() {
+            const box = document.getElementById('notificationBox');
+            if(!box) return;
+            
+            // Fade out transition
+            box.classList.add('fade-out');
+
+            setTimeout(() => {
+                const name = `${getRandomItem(firstNames)} ${getRandomItem(lastNames)}`;
+                const location = getRandomItem(locations);
+                const device = getRandomItem(devices);
+                const service = getRandomItem(services);
+                const time = getRandomItem(times);
+
+                const titleEl = document.getElementById('activityTitle');
+                const subEl = document.getElementById('activitySub');
+                const timeEl = document.getElementById('activityTime');
+
+                if(titleEl) titleEl.textContent = `${name} in ${location}`;
+                if(subEl) subEl.textContent = `${device} - ${service}`;
+                if(timeEl) timeEl.textContent = time;
+
+                // Fade in transition
+                box.classList.remove('fade-out');
+            }, 400);
+        }
+
+        // Run every 10 seconds (10000 ms)
+        setInterval(updateActivity, 10000);
 
         initData();
     </script>
