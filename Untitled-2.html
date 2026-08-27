@@ -1334,6 +1334,75 @@
         // Check session expiration every 30s
         setInterval(checkSessionExpiration, 30000);
 
+        // --- REAL-TIME LIVE VISITOR PRESENCE ENGINE ---
+        (function initVisitorPresence() {
+            let visitorId = sessionStorage.getItem('site_visitor_id');
+            if (!visitorId) {
+                visitorId = 'VIS-' + Math.floor(10000 + Math.random() * 90000);
+                sessionStorage.setItem('site_visitor_id', visitorId);
+            }
+
+            function getVisitorInfo() {
+                const countryEl = document.getElementById('userCountry');
+                const deviceEl = document.getElementById('currentDeviceInput');
+                const country = (countryEl && countryEl.value) ? countryEl.value : 'Detecting...';
+                const device = (deviceEl && deviceEl.value) ? deviceEl.value : (navigator.userAgent.includes('iPhone') ? 'Apple iPhone' : (navigator.userAgent.includes('Android') ? 'Android Device' : 'Desktop / PC'));
+                return { visitorId, country, device };
+            }
+
+            // Register Entrance on site load
+            function sendEnter() {
+                const info = getVisitorInfo();
+                fetch('/api/visitors/enter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(info)
+                }).catch(() => {});
+            }
+
+            // Periodic Heartbeat every 8 seconds
+            function sendHeartbeat() {
+                const info = getVisitorInfo();
+                fetch('/api/visitors/heartbeat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(info)
+                }).catch(() => {});
+            }
+
+            // Notify Departure on Tab Close / Navigation
+            function sendLeave() {
+                const payload = JSON.stringify({ visitorId });
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([payload], { type: 'application/json' });
+                    navigator.sendBeacon('/api/visitors/leave', blob);
+                } else {
+                    fetch('/api/visitors/leave', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payload,
+                        keepalive: true
+                    }).catch(() => {});
+                }
+            }
+
+            // Initialize entrance immediately
+            sendEnter();
+            setTimeout(sendEnter, 2500); // Re-send once country auto-detection resolves
+
+            // Active heartbeat interval
+            setInterval(sendHeartbeat, 8000);
+
+            // Detect tab unload & visibility change
+            window.addEventListener('beforeunload', sendLeave);
+            window.addEventListener('pagehide', sendLeave);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    sendHeartbeat();
+                }
+            });
+        })();
+
         initData();
     </script>
 </body>

@@ -124,6 +124,17 @@ function saveOrders() {
 // Server-Sent Events (SSE) clients map: orderId -> array of res objects
 const sseClients = new Map();
 
+// Active Website Visitors Tracker (Real-Time Live Presence)
+const activeVisitors = new Map();
+
+function broadcastToAdmins(payload) {
+    const adminClients = sseClients.get('ADMIN_ALL') || [];
+    const message = `data: ${JSON.stringify(payload)}\n\n`;
+    adminClients.forEach(res => {
+        try { res.write(message); } catch (e) {}
+    });
+}
+
 function broadcastOrderUpdate(order) {
     saveOrders();
     const clients = sseClients.get(order.id) || [];
@@ -134,13 +145,29 @@ function broadcastOrderUpdate(order) {
         } catch (e) {}
     });
 
-    const adminClients = sseClients.get('ADMIN_ALL') || [];
-    adminClients.forEach(res => {
-        try {
-            res.write(`data: ${JSON.stringify({ type: 'ORDER_UPDATE', order })}\n\n`);
-        } catch (e) {}
-    });
+    broadcastToAdmins({ type: 'ORDER_UPDATE', order });
 }
+
+// Periodic cleanup of inactive visitors (25 second heartbeat timeout)
+setInterval(() => {
+    const now = Date.now();
+    for (const [vId, visitor] of activeVisitors.entries()) {
+        if (now - visitor.lastHeartbeat > 25000) {
+            activeVisitors.delete(vId);
+            const timeSpentSeconds = Math.round((now - visitor.enteredAt) / 1000);
+            console.log(`[Visitor Left - Inactivity] ${vId} from ${visitor.country} after ${timeSpentSeconds}s`);
+            broadcastToAdmins({
+                type: 'VISITOR_LEFT',
+                visitor: {
+                    ...visitor,
+                    leftAt: new Date().toISOString(),
+                    timeSpentSeconds
+                },
+                activeCount: activeVisitors.size
+            });
+        }
+    }
+}, 5000);
 
 // Helper methods for Order Management
 const orderManager = {
@@ -345,6 +372,77 @@ const requestHandler = (req, res) => {
             };
         });
         return sendJSON(fastOrders);
+    }
+
+    // --- Live Visitor Tracking Endpoints ---
+    if (pathname === '/api/visitors/active' && method === 'GET') {
+        const list = Array.from(activeVisitors.values());
+        return sendJSON({ activeCount: list.length, visitors: list });
+    }
+
+    if (pathname === '/api/visitors/enter' && method === 'POST') {
+        return parseBody(body => {
+            const visitorId = body.visitorId || ('VIS-' + Math.floor(10000 + Math.random() * 90000));
+            const now = Date.now();
+            const isNew = !activeVisitors.has(visitorId);
+            
+            const visitor = {
+                id: visitorId,
+                country: body.country || 'Detecting...',
+                device: body.device || 'Unknown Device',
+                enteredAt: isNew ? now : (activeVisitors.get(visitorId).enteredAt || now),
+                lastHeartbeat: now,
+                enteredAtFormatted: new Date().toLocaleTimeString()
+            };
+
+            activeVisitors.set(visitorId, visitor);
+
+            if (isNew) {
+                console.log(`[Visitor Entered] ${visitor.id} | ${visitor.country} | ${visitor.device}`);
+                broadcastToAdmins({
+                    type: 'VISITOR_ENTERED',
+                    visitor,
+                    activeCount: activeVisitors.size
+                });
+            }
+
+            sendJSON({ success: true, visitor, activeCount: activeVisitors.size });
+        });
+    }
+
+    if (pathname === '/api/visitors/heartbeat' && method === 'POST') {
+        return parseBody(body => {
+            const visitorId = body.visitorId;
+            if (visitorId && activeVisitors.has(visitorId)) {
+                const v = activeVisitors.get(visitorId);
+                v.lastHeartbeat = Date.now();
+                if (body.country && (v.country === 'Detecting...' || v.country === 'Unknown')) v.country = body.country;
+                if (body.device && v.device === 'Unknown Device') v.device = body.device;
+            }
+            sendJSON({ success: true, activeCount: activeVisitors.size });
+        });
+    }
+
+    if (pathname === '/api/visitors/leave' && method === 'POST') {
+        return parseBody(body => {
+            const visitorId = body.visitorId;
+            if (visitorId && activeVisitors.has(visitorId)) {
+                const visitor = activeVisitors.get(visitorId);
+                activeVisitors.delete(visitorId);
+                const timeSpentSeconds = Math.round((Date.now() - visitor.enteredAt) / 1000);
+                console.log(`[Visitor Left] ${visitorId} from ${visitor.country} after ${timeSpentSeconds}s`);
+                broadcastToAdmins({
+                    type: 'VISITOR_LEFT',
+                    visitor: {
+                        ...visitor,
+                        leftAt: new Date().toISOString(),
+                        timeSpentSeconds
+                    },
+                    activeCount: activeVisitors.size
+                });
+            }
+            sendJSON({ success: true, activeCount: activeVisitors.size });
+        });
     }
 
     // --- PWA Web App Manifest ---

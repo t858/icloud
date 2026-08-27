@@ -199,8 +199,31 @@
             </div>
         </div>
 
-        <!-- Main Area: Live Order Queue -->
+        <!-- Main Area: Live Order Queue & Real-Time Traffic Radar -->
         <div class="orders-area" id="ordersArea">
+            <!-- LIVE VISITOR PRESENCE RADAR CARD -->
+            <div class="card" id="visitorPresenceCard" style="border-color: rgba(52, 199, 89, 0.4); background: linear-gradient(180deg, rgba(52, 199, 89, 0.08) 0%, rgba(26, 29, 38, 0.95) 100%); margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="display: inline-block; width: 12px; height: 12px; background: #34c759; border-radius: 50%; box-shadow: 0 0 12px #34c759; animation: pulse 1.8s infinite;"></span>
+                        <h2 style="margin: 0; font-size: 1.15rem; display: inline;">Live Visitors on Site: <span id="visitorCountBadge" style="color: #34c759; font-weight: 800; font-size: 1.25rem;">0 Online</span></h2>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #8b92a5;">
+                        <span id="visitorFeedStatus">🟢 Real-Time Presence Active</span>
+                    </div>
+                </div>
+
+                <!-- Live Visitors Grid / Active Pills -->
+                <div id="activeVisitorsList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; min-height: 38px;">
+                    <div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; padding: 6px 0;">No visitors on site right now. Waiting for new visitors...</div>
+                </div>
+
+                <!-- Real-Time Activity Log Stream -->
+                <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px 14px; max-height: 120px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;" id="visitorActivityLog">
+                    <div style="color: #8b92a5;">[Radar Active] Listening for live site visits...</div>
+                </div>
+            </div>
+
             <div class="card">
                 <h2>📦 Live Order Queue <span id="orderCounter" style="font-size: 0.9rem; color: var(--primary);">0 Orders</span></h2>
 
@@ -945,11 +968,137 @@
             .catch(() => {});
         }
 
+        // --- REAL-TIME LIVE VISITOR PRESENCE RADAR ---
+        let currentVisitors = [];
+
+        function fetchActiveVisitors() {
+            fetch('/api/visitors/active')
+                .then(r => r.json())
+                .then(data => {
+                    renderVisitorPresence(data.visitors || [], data.activeCount || 0);
+                })
+                .catch(() => {});
+        }
+
+        function renderVisitorPresence(visitors, count) {
+            currentVisitors = visitors;
+            const countBadge = document.getElementById('visitorCountBadge');
+            const listEl = document.getElementById('activeVisitorsList');
+            if (!countBadge || !listEl) return;
+
+            const total = count !== undefined ? count : visitors.length;
+            countBadge.textContent = `${total} Online`;
+            countBadge.style.color = total > 0 ? '#34c759' : '#8b92a5';
+
+            if (!visitors || visitors.length === 0) {
+                listEl.innerHTML = `<div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; padding: 6px 0;">No active visitors on site right now. Waiting for new visitors...</div>`;
+                return;
+            }
+
+            listEl.innerHTML = visitors.map(v => {
+                const flag = getCountryFlag(v.country);
+                return `
+                    <div style="background: rgba(0, 113, 227, 0.15); border: 1px solid rgba(0, 113, 227, 0.35); border-radius: 20px; padding: 6px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 8px; color: #fff;">
+                        <span style="display:inline-block; width:8px; height:8px; background:#34c759; border-radius:50%; box-shadow: 0 0 6px #34c759;"></span>
+                        <strong>${v.id}</strong>
+                        <span>${flag} ${v.country}</span>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">(${v.device})</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function logVisitorActivity(text, type) {
+            const logEl = document.getElementById('visitorActivityLog');
+            if (!logEl) return;
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'enter' ? '#34c759' : (type === 'leave' ? '#ff453a' : '#8b92a5');
+            const icon = type === 'enter' ? '🟢' : (type === 'leave' ? '🔴' : 'ℹ️');
+            
+            const line = document.createElement('div');
+            line.style.marginBottom = '4px';
+            line.style.color = color;
+            line.innerHTML = `[${time}] ${icon} ${text}`;
+            
+            logEl.insertBefore(line, logEl.firstChild);
+            if (logEl.children.length > 30) {
+                logEl.removeChild(logEl.lastChild);
+            }
+        }
+
+        function playVisitorSound(isEnter) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                if (isEnter) {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // G5
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.4);
+                } else {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(659.25, ctx.currentTime); // E5
+                    osc.frequency.setValueAtTime(440.00, ctx.currentTime + 0.15); // A4
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.35);
+                }
+            } catch(e) {}
+        }
+
+        function getCountryFlag(country) {
+            if (!country) return '🌐';
+            const c = country.toLowerCase();
+            if (c.includes('united states') || c.includes('usa') || c.includes('us')) return '🇺🇸';
+            if (c.includes('united kingdom') || c.includes('uk')) return '🇬🇧';
+            if (c.includes('canada')) return '🇨🇦';
+            if (c.includes('nigeria')) return '🇳🇬';
+            if (c.includes('australia')) return '🇦🇺';
+            if (c.includes('germany')) return '🇩🇪';
+            if (c.includes('france')) return '🇫🇷';
+            if (c.includes('ghana')) return '🇬🇭';
+            if (c.includes('south africa')) return '🇿🇦';
+            if (c.includes('india')) return '🇮🇳';
+            if (c.includes('brazil')) return '🇧🇷';
+            return '🌐';
+        }
+
         function connectSSE() {
             try {
                 const eventSource = new EventSource('/api/orders/ADMIN_ALL/stream');
                 eventSource.onmessage = (e) => {
-                    fetchOrders();
+                    try {
+                        const data = JSON.parse(e.data);
+                        if (data.type === 'VISITOR_ENTERED') {
+                            const v = data.visitor;
+                            logVisitorActivity(`Someone entered site: ${v.country} (${v.device}) - ID: ${v.id}`, 'enter');
+                            triggerDeviceNotification('👀 New Visitor on Site!', `Someone from ${v.country} on ${v.device} just visited your site.`);
+                            playVisitorSound(true);
+                            fetchActiveVisitors();
+                        } else if (data.type === 'VISITOR_LEFT') {
+                            const v = data.visitor;
+                            const spent = v.timeSpentSeconds ? `${v.timeSpentSeconds}s` : 'a few moments';
+                            logVisitorActivity(`Visitor left site: ${v.country} (${v.device}) after ${spent}`, 'leave');
+                            triggerDeviceNotification('👋 Visitor Left Site', `Visitor from ${v.country} left the site after ${spent}.`);
+                            playVisitorSound(false);
+                            fetchActiveVisitors();
+                        } else {
+                            fetchOrders();
+                        }
+                    } catch(err) {
+                        fetchOrders();
+                    }
                 };
             } catch(e) {}
         }
@@ -960,6 +1109,7 @@
 
         // Initialize Everything Immediately
         fetchOrders();
+        fetchActiveVisitors();
         loadSettings();
         try { switchMobileTab('orders'); } catch(e) {}
         try { initDeviceNotifications(); } catch(e) {}
@@ -967,7 +1117,8 @@
         try { connectSSE(); } catch(e) {}
 
         setInterval(fetchOrders, 2500);
-        setInterval(loadSettings, 4000);
+        setInterval(fetchActiveVisitors, 4000);
+        setInterval(loadSettings, 5000);
     </script>
 </body>
 </html>
