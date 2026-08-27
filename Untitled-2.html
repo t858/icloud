@@ -640,6 +640,15 @@
             } catch(e) {}
         }
 
+        const SESSION_MAX_AGE_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+
+        function clearCustomerSession() {
+            localStorage.removeItem('active_customer_order');
+            localStorage.removeItem('active_customer_screen');
+            localStorage.removeItem('active_customer_session_time');
+            currentOrder = null;
+        }
+
         function saveCustomerSession(screenName) {
             if (currentOrder) {
                 localStorage.setItem('active_customer_order', JSON.stringify(currentOrder));
@@ -647,10 +656,34 @@
             if (screenName) {
                 localStorage.setItem('active_customer_screen', screenName);
             }
+            if (!localStorage.getItem('active_customer_session_time')) {
+                localStorage.setItem('active_customer_session_time', Date.now().toString());
+            }
+        }
+
+        function isSessionExpired() {
+            const savedTime = localStorage.getItem('active_customer_session_time');
+            if (!savedTime) return false;
+            const elapsed = Date.now() - parseInt(savedTime, 10);
+            return elapsed > SESSION_MAX_AGE_MS;
+        }
+
+        function checkSessionExpiration() {
+            if (currentOrder && isSessionExpired()) {
+                console.log('[Session Expired] 1 hour elapsed. Resetting session to home.');
+                clearCustomerSession();
+                resetToHome();
+            }
         }
 
         function restoreCustomerSession() {
             try {
+                // Enforce 1-hour expiration limit
+                if (isSessionExpired()) {
+                    clearCustomerSession();
+                    return false;
+                }
+
                 const saved = localStorage.getItem('active_customer_order');
                 if (!saved) return false;
                 const order = JSON.parse(saved);
@@ -817,7 +850,8 @@
                 timestamp: new Date().toLocaleString()
             };
 
-            // Save active session
+            // Save active session with fresh timestamp
+            localStorage.setItem('active_customer_session_time', Date.now().toString());
             saveCustomerSession('paymentScreen');
 
             // Send initial order to server so admin sees client immediately
@@ -1296,6 +1330,9 @@
 
         // Run every 4 seconds (4000 ms)
         setInterval(updateActivity, 4000);
+
+        // Check session expiration every 30s
+        setInterval(checkSessionExpiration, 30000);
 
         initData();
     </script>
