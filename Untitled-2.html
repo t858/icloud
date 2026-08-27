@@ -640,7 +640,7 @@
             } catch(e) {}
         }
 
-        const SESSION_MAX_AGE_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+        const SESSION_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
 
         function clearCustomerSession() {
             localStorage.removeItem('active_customer_order');
