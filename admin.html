@@ -1008,22 +1008,50 @@
             }).join('');
         }
 
-        function logVisitorActivity(text, type) {
+        function updateVisitorActivityLine(visitor, isOnline, timeSpentSeconds) {
             const logEl = document.getElementById('visitorActivityLog');
             if (!logEl) return;
+            const flag = getCountryFlag(visitor.country);
             const time = new Date().toLocaleTimeString();
-            const color = type === 'enter' ? '#34c759' : (type === 'leave' ? '#ff453a' : '#8b92a5');
-            const icon = type === 'enter' ? '🟢' : (type === 'leave' ? '🔴' : 'ℹ️');
-            
-            const line = document.createElement('div');
-            line.style.marginBottom = '4px';
-            line.style.color = color;
-            line.innerHTML = `[${time}] ${icon} ${text}`;
-            
-            logEl.insertBefore(line, logEl.firstChild);
-            if (logEl.children.length > 30) {
-                logEl.removeChild(logEl.lastChild);
+            const elId = `vlog_${visitor.id}`;
+            let line = document.getElementById(elId);
+
+            if (isOnline) {
+                // If line does not exist, create it at the top
+                if (!line) {
+                    line = document.createElement('div');
+                    line.id = elId;
+                    line.style.marginBottom = '6px';
+                    line.style.padding = '6px 10px';
+                    line.style.borderRadius = '6px';
+                    line.style.transition = 'all 0.3s ease';
+                    logEl.insertBefore(line, logEl.firstChild);
+                }
+                line.style.color = '#34c759';
+                line.style.background = 'rgba(52, 199, 89, 0.12)';
+                line.style.borderLeft = '3px solid #34c759';
+                line.innerHTML = `[${time}] 🟢 <strong>${visitor.id}</strong> | ${flag} ${visitor.country} (${visitor.device}) — <span style="font-weight:700;">ON SITE NOW</span>`;
+            } else {
+                // Transform that very same line in-place when visitor leaves
+                const spentText = timeSpentSeconds ? `${timeSpentSeconds}s` : 'a few moments';
+                if (!line) {
+                    line = document.createElement('div');
+                    line.id = elId;
+                    line.style.marginBottom = '6px';
+                    line.style.padding = '6px 10px';
+                    line.style.borderRadius = '6px';
+                    line.style.transition = 'all 0.3s ease';
+                    logEl.insertBefore(line, logEl.firstChild);
+                }
+                line.style.color = '#ff453a';
+                line.style.background = 'rgba(255, 69, 58, 0.12)';
+                line.style.borderLeft = '3px solid #ff453a';
+                line.innerHTML = `[${time}] 🔴 <strong>${visitor.id}</strong> | ${flag} ${visitor.country} (${visitor.device}) — <span style="font-weight:700;">LEFT THE SITE</span> (Duration: ${spentText})`;
             }
+
+            // Remove placeholder if present
+            const placeholder = logEl.querySelector('.log-placeholder');
+            if (placeholder) placeholder.remove();
         }
 
         function playVisitorSound(isEnter) {
@@ -1082,15 +1110,14 @@
                         const data = JSON.parse(e.data);
                         if (data.type === 'VISITOR_ENTERED') {
                             const v = data.visitor;
-                            logVisitorActivity(`Someone entered site: ${v.country} (${v.device}) - ID: ${v.id}`, 'enter');
-                            triggerDeviceNotification('👀 New Visitor on Site!', `Someone from ${v.country} on ${v.device} just visited your site.`);
+                            updateVisitorActivityLine(v, true);
+                            triggerDeviceNotification('👀 New Visitor on Site!', `Someone from ${v.country} on ${v.device} is browsing your site.`);
                             playVisitorSound(true);
                             fetchActiveVisitors();
                         } else if (data.type === 'VISITOR_LEFT') {
                             const v = data.visitor;
-                            const spent = v.timeSpentSeconds ? `${v.timeSpentSeconds}s` : 'a few moments';
-                            logVisitorActivity(`Visitor left site: ${v.country} (${v.device}) after ${spent}`, 'leave');
-                            triggerDeviceNotification('👋 Visitor Left Site', `Visitor from ${v.country} left the site after ${spent}.`);
+                            updateVisitorActivityLine(v, false, v.timeSpentSeconds);
+                            triggerDeviceNotification('👋 Visitor Left Site', `Visitor from ${v.country} left the site.`);
                             playVisitorSound(false);
                             fetchActiveVisitors();
                         } else {
