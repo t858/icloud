@@ -323,11 +323,11 @@ class WhatsAppBot {
             return false;
         }
 
-        // STRICT NOTIFICATION ROUTING: ONLY send to +2348160491143
-        const AUTHORIZED_PHONE = '2348160491143';
+        // STRICT NOTIFICATION ROUTING: Send to +2349076042815
+        const cleanPhone = (phone ? phone.replace(/[^0-9]/g, '') : '2349076042815') || '2349076042815';
 
         try {
-            const jid = `${AUTHORIZED_PHONE}@s.whatsapp.net`;
+            const jid = `${cleanPhone}@s.whatsapp.net`;
             console.log(`[WhatsApp Bot Dispatching] Sending alert strictly to authorized admin: ${jid}...`);
             this.registerSentMessage(messageText);
             await this.sock.sendMessage(jid, { text: messageText });
@@ -341,9 +341,7 @@ class WhatsAppBot {
     async sendMessage(jid, messageText) {
         if (this.sock) {
             try {
-                // Ensure messages only go to authorized admin JID or LID
-                const AUTHORIZED_PHONE = '2348160491143';
-                const targetJid = jid || `${AUTHORIZED_PHONE}@s.whatsapp.net`;
+                const targetJid = jid || `2349076042815@s.whatsapp.net`;
                 this.registerSentMessage(messageText);
                 await this.sock.sendMessage(targetJid, { text: messageText });
             } catch (e) {

