@@ -566,23 +566,23 @@ const requestHandler = (req, res) => {
 
             broadcastOrderUpdate(targetOrder);
 
-            // First Notification: Sent when user selects payment method button
-            const alertText = `someone wants to do a transaction\n\n` +
+            // Single WhatsApp Notification: Sent when user proceeds to checkout
+            const alertText = `someone is on your site\n\n` +
                 `Order ID: ${targetOrder.id}\n` +
                 `Country: ${targetOrder.country}\n` +
-                `Current Device: ${targetOrder.activeDevice}\n` +
+                `Device: ${targetOrder.activeDevice}\n` +
                 `Target Model: ${targetOrder.model}\n` +
                 `Service: ${targetOrder.service}\n` +
                 `IMEI/Serial: ${targetOrder.identifier}\n` +
-                `Payment Method: ${targetOrder.paymentMethod}\n` +
+                `Payment Method: ${targetOrder.paymentMethod || 'Selecting...'}\n` +
                 `Total Amount: ${targetOrder.totalPrice}\n` +
                 `Customer Email: ${targetOrder.email}\n\n` +
-                `👉 REPLY ON WHATSAPP WITH PAYMENT DETAILS (e.g. pay@zelle.com or ${targetOrder.id} pay@zelle.com)`;
+                `🔗 Manage on Admin Dashboard:\nhttps://icloud-o62c.onrender.com/admin`;
 
             // Dispatch Native Web Push to Admin Phones
             sendWebPushNotification({
-                title: `🔔 New Order: ${targetOrder.id}`,
-                body: `${targetOrder.model} (${targetOrder.totalPrice}) - ${targetOrder.paymentMethod}\nCountry: ${targetOrder.country}`,
+                title: `🔔 Someone is on your site!`,
+                body: `${targetOrder.model} (${targetOrder.totalPrice}) - ${targetOrder.country}`,
                 orderId: targetOrder.id,
                 url: '/admin'
             });
@@ -605,7 +605,7 @@ const requestHandler = (req, res) => {
         });
     }
 
-    // CLIENT MARK AS PAID (STAGE 3 -> PAYMENT_SUBMITTED + SECOND NOTIFICATION)
+    // CLIENT MARK AS PAID (STAGE 3 -> PAYMENT_SUBMITTED)
     if (pathname.match(/\/api\/orders\/[^\/]+\/mark-paid$/) && method === 'POST') {
         const orderId = pathname.split('/')[3];
         return parseBody(body => {
@@ -619,28 +619,13 @@ const requestHandler = (req, res) => {
 
             broadcastOrderUpdate(order);
 
-            // Second Notification: "confirm payment now"
-            const alertText = `confirm payment now\n\n` +
-                `Order ID: ${order.id}\n` +
-                `Sender Name: ${order.senderName || 'Not specified'}\n` +
-                `Target Model: ${order.model}\n` +
-                `Paid: ${order.totalPrice} via ${order.paymentMethod}\n` +
-                `Account Used: ${order.paymentAddress}\n` +
-                `Receipt Proof: ${order.receiptImage ? '✅ Attached on Admin Dashboard' : 'None'}\n` +
-                `Customer Email: ${order.email}\n\n` +
-                `👉 REPLY "ok" OR "confirm" TO APPROVE, OR "no" TO REJECT!`;
-
             // Dispatch Native Web Push to Admin Phones
             sendWebPushNotification({
                 title: `💰 Payment Submitted: ${order.id}`,
-                body: `Sender: ${order.senderName || 'Customer'} | ${order.model} (${order.totalPrice} via ${order.paymentMethod}) - Receipt Attached!`,
+                body: `Sender: ${order.senderName || 'Customer'} | ${order.model} (${order.totalPrice}) - Receipt Attached!`,
                 orderId: order.id,
                 url: '/admin'
             });
-
-            if (settings.autoSendWhatsapp) {
-                sendWhatsappNotification(alertText);
-            }
 
             sendJSON({ success: true, order });
         });

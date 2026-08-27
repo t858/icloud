@@ -551,7 +551,7 @@
             fetch('/api/test-whatsapp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: 'someone wants to do a transaction' })
+                body: JSON.stringify({ message: 'someone is on your site\n\nOrder ID: UNL-TEST\nTarget Model: iPhone 15 Pro Max\nTotal: $120.00\n\nManage on Admin Dashboard:\nhttps://icloud-o62c.onrender.com/admin' })
             })
             .then(r => r.json())
             .then(() => alert('Test WhatsApp alert sent!'))
