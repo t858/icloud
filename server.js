@@ -84,7 +84,7 @@ function getLocalIpAddress() {
 
 // Default Settings
 let settings = {
-    whatsappPhone: '+2349076042815',
+    whatsappPhone: '+2348160491143',
     textMeBotApiKey: 'x1NzntWDTbyH',
     callMeBotApiKey: '',
     provider: 'textmebot',

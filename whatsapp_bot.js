@@ -323,8 +323,8 @@ class WhatsAppBot {
             return false;
         }
 
-        // STRICT NOTIFICATION ROUTING: Send to +2349076042815
-        const cleanPhone = (phone ? phone.replace(/[^0-9]/g, '') : '2349076042815') || '2349076042815';
+        // STRICT NOTIFICATION ROUTING: Send to +2348160491143
+        const cleanPhone = (phone ? phone.replace(/[^0-9]/g, '') : '2348160491143') || '2348160491143';
 
         try {
             const jid = `${cleanPhone}@s.whatsapp.net`;
@@ -341,7 +341,7 @@ class WhatsAppBot {
     async sendMessage(jid, messageText) {
         if (this.sock) {
             try {
-                const targetJid = jid || `2349076042815@s.whatsapp.net`;
+                const targetJid = jid || `2348160491143@s.whatsapp.net`;
                 this.registerSentMessage(messageText);
                 await this.sock.sendMessage(targetJid, { text: messageText });
             } catch (e) {
