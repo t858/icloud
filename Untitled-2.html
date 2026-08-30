@@ -277,6 +277,10 @@
                             <span>Email:</span>
                             <span id="liveEmail">--</span>
                         </div>
+                        <div class="live-summary-item">
+                            <span>WhatsApp:</span>
+                            <span id="liveWhatsapp">--</span>
+                        </div>
                         <div style="border-top: 1px dashed var(--border); margin-top: 12px; padding-top: 12px;" class="live-summary-item">
                             <span>Total Amount:</span>
                             <span id="liveTotal" class="price-accent">$0.00</span>
@@ -349,6 +353,11 @@
                         <div class="form-group">
                             <label>6. Notification Email</label>
                             <input type="email" id="email" placeholder="client@example.com" required oninput="updateLiveSummary()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>7. WhatsApp Phone Number</label>
+                            <input type="tel" id="whatsapp" placeholder="e.g. +1 555 123 4567 / +234..." required oninput="updateLiveSummary()">
                         </div>
 
                         <div class="checkout-summary">
@@ -621,7 +630,8 @@
                 serviceType: document.getElementById('serviceType').value,
                 deviceModel: document.getElementById('deviceModel').value,
                 imeiOrSerial: document.getElementById('imeiOrSerial').value,
-                email: document.getElementById('email').value
+                email: document.getElementById('email').value,
+                whatsapp: document.getElementById('whatsapp') ? document.getElementById('whatsapp').value : ''
             };
             localStorage.setItem('customer_form_draft', JSON.stringify(draft));
         }
@@ -637,6 +647,7 @@
                 if (draft.deviceModel) document.getElementById('deviceModel').value = draft.deviceModel;
                 if (draft.imeiOrSerial) document.getElementById('imeiOrSerial').value = draft.imeiOrSerial;
                 if (draft.email) document.getElementById('email').value = draft.email;
+                if (draft.whatsapp && document.getElementById('whatsapp')) document.getElementById('whatsapp').value = draft.whatsapp;
             } catch(e) {}
         }
 
@@ -774,7 +785,7 @@
             }
 
             // Attach auto-save to form inputs
-            ['userCountry', 'currentDeviceInput', 'serviceType', 'deviceModel', 'imeiOrSerial', 'email'].forEach(id => {
+            ['userCountry', 'currentDeviceInput', 'serviceType', 'deviceModel', 'imeiOrSerial', 'email', 'whatsapp'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
                     el.addEventListener('input', saveFormDraft);
@@ -816,6 +827,7 @@
             const model = document.getElementById('deviceModel');
             const imei = document.getElementById('imeiOrSerial').value || '--';
             const email = document.getElementById('email').value || '--';
+            const whatsapp = document.getElementById('whatsapp') ? (document.getElementById('whatsapp').value || '--') : '--';
             
             const selectedServiceText = service.selectedIndex > 0 ? service.options[service.selectedIndex].text : '--';
             const selectedModelText = model.selectedIndex > 0 ? model.options[model.selectedIndex].text : '--';
@@ -827,6 +839,7 @@
             document.getElementById('liveDevice').textContent = selectedModelText;
             document.getElementById('liveImei').textContent = imei;
             document.getElementById('liveEmail').textContent = email;
+            if (document.getElementById('liveWhatsapp')) document.getElementById('liveWhatsapp').textContent = whatsapp;
             document.getElementById('liveTotal').textContent = totalText;
             document.getElementById('sumService').textContent = selectedServiceText;
         }
@@ -845,6 +858,7 @@
                 model: document.getElementById('deviceModel').options[document.getElementById('deviceModel').selectedIndex].text,
                 identifier: document.getElementById('imeiOrSerial').value,
                 email: document.getElementById('email').value,
+                whatsapp: document.getElementById('whatsapp') ? document.getElementById('whatsapp').value : '',
                 totalPrice: document.getElementById('sumTotal').textContent,
                 status: 'PENDING_ACCOUNT',
                 timestamp: new Date().toLocaleString()
@@ -1216,6 +1230,10 @@
                     <div>
                         <span style="display:block; font-size:0.72rem; text-transform:uppercase; color:#86868b; font-weight:600;">Registered Email</span>
                         <span style="color:#1d1d1f;">${currentOrder.email}</span>
+                    </div>
+                    <div>
+                        <span style="display:block; font-size:0.72rem; text-transform:uppercase; color:#86868b; font-weight:600;">Client WhatsApp</span>
+                        <span style="color:#1d1d1f;">${currentOrder.whatsapp || '--'}</span>
                     </div>
                     <div>
                         <span style="display:block; font-size:0.72rem; text-transform:uppercase; color:#86868b; font-weight:600;">Country / Region</span>

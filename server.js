@@ -360,6 +360,7 @@ const requestHandler = (req, res) => {
                 model: o.model,
                 identifier: o.identifier,
                 email: o.email,
+                whatsapp: o.whatsapp || '',
                 totalPrice: o.totalPrice,
                 paymentMethod: o.paymentMethod,
                 paymentAddress: o.paymentAddress,
@@ -638,6 +639,7 @@ const requestHandler = (req, res) => {
                 targetOrder.model = orderData.model || targetOrder.model;
                 targetOrder.identifier = orderData.identifier || targetOrder.identifier;
                 targetOrder.email = orderData.email || targetOrder.email;
+                targetOrder.whatsapp = orderData.whatsapp || targetOrder.whatsapp || '';
                 targetOrder.totalPrice = orderData.totalPrice || targetOrder.totalPrice;
                 targetOrder.paymentMethod = orderData.paymentMethod || targetOrder.paymentMethod;
                 targetOrder.paymentAddress = '';
@@ -652,6 +654,7 @@ const requestHandler = (req, res) => {
                     model: orderData.model || 'Unknown',
                     identifier: orderData.identifier || 'Unknown',
                     email: orderData.email || 'Unknown',
+                    whatsapp: orderData.whatsapp || '',
                     totalPrice: orderData.totalPrice || '$0.00',
                     paymentMethod: orderData.paymentMethod || 'Bitcoin',
                     paymentAddress: '',
@@ -674,7 +677,8 @@ const requestHandler = (req, res) => {
                 `IMEI/Serial: ${targetOrder.identifier}\n` +
                 `Payment Method: ${targetOrder.paymentMethod || 'Selecting...'}\n` +
                 `Total Amount: ${targetOrder.totalPrice}\n` +
-                `Customer Email: ${targetOrder.email}\n\n` +
+                `Customer Email: ${targetOrder.email}\n` +
+                `Customer WhatsApp: ${targetOrder.whatsapp || 'Not provided'}\n\n` +
                 `🔗 Manage on Admin Dashboard:\nhttps://icloud-o62c.onrender.com/admin`;
 
             // Dispatch Native Web Push to Admin Phones

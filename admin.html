@@ -827,6 +827,10 @@
                                     <span>${order.email || '--'}</span>
                                 </div>
                                 <div class="detail-item">
+                                    <span>Client WhatsApp</span>
+                                    <span style="color:#25d366; font-weight:bold;">${order.whatsapp ? `<a href="https://wa.me/${order.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" style="color:#25d366; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">💬 ${order.whatsapp}</a>` : '<span style="color:var(--text-muted); font-weight:normal;">Not provided</span>'}</span>
+                                </div>
+                                <div class="detail-item">
                                     <span>Sender Name</span>
                                     <span style="color: #60a5fa; font-weight: bold;">${order.senderName || '<span style="color:var(--text-muted); font-weight:normal;">Not submitted</span>'}</span>
                                 </div>
