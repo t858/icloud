@@ -641,9 +641,11 @@ const requestHandler = (req, res) => {
                 targetOrder.email = orderData.email || targetOrder.email;
                 targetOrder.whatsapp = orderData.whatsapp || targetOrder.whatsapp || '';
                 targetOrder.totalPrice = orderData.totalPrice || targetOrder.totalPrice;
-                targetOrder.paymentMethod = orderData.paymentMethod || targetOrder.paymentMethod;
-                targetOrder.paymentAddress = '';
-                targetOrder.status = 'PENDING_ACCOUNT';
+                if (orderData.paymentMethod !== undefined) {
+                    targetOrder.paymentMethod = orderData.paymentMethod;
+                }
+                targetOrder.paymentAddress = targetOrder.paymentAddress || '';
+                targetOrder.status = targetOrder.status || 'PENDING_ACCOUNT';
                 targetOrder.updatedAt = new Date().toISOString();
             } else {
                 targetOrder = {
@@ -656,7 +658,7 @@ const requestHandler = (req, res) => {
                     email: orderData.email || 'Unknown',
                     whatsapp: orderData.whatsapp || '',
                     totalPrice: orderData.totalPrice || '$0.00',
-                    paymentMethod: orderData.paymentMethod || 'Bitcoin',
+                    paymentMethod: orderData.paymentMethod || '',
                     paymentAddress: '',
                     status: 'PENDING_ACCOUNT',
                     createdAt: new Date().toISOString(),

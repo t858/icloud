@@ -705,14 +705,16 @@
                     const currentValue = draftInputs[inputId] !== undefined ? draftInputs[inputId] : (order.paymentAddress || '');
                     const receiptUrl = order.receiptImageUrl || (order.hasReceipt ? `/api/orders/${order.id}/receipt` : (order.receiptImage || ''));
 
+                    const hasSelectedMethod = order.paymentMethod && order.paymentMethod.trim() && order.paymentMethod !== 'Selecting...';
+
                     if(order.status === 'PENDING_ACCOUNT') {
                         cardClass = 'status-pending';
                         statusBadge = `<span class="status-badge badge-pending">⚠️ Input Account</span>`;
                         actionHtml = `
                             <div class="action-box">
-                                <p><strong>Step 1:</strong> Enter payment account (${order.paymentMethod || 'Selected'}) for this client:</p>
+                                <p><strong>Step 1:</strong> Enter payment account (${hasSelectedMethod ? `<strong style="color:#60a5fa; font-size:1.05rem;">${order.paymentMethod}</strong>` : `<span style="color:#ff9f0a; font-style:italic;">Customer is choosing payment method...</span>`}) for this client:</p>
                                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                    <input type="text" id="${inputId}" placeholder="e.g. Zelle: pay@email.com / BTC Address" value="${currentValue}" style="flex:1; min-width:180px;">
+                                    <input type="text" id="${inputId}" placeholder="e.g. ${hasSelectedMethod ? order.paymentMethod + ' Address / Details' : 'Zelle: pay@email.com / BTC Address'}" value="${currentValue}" style="flex:1; min-width:180px;">
                                     <button onclick="assignPaymentAccount('${order.id}')" class="btn btn-warning btn-sm" style="white-space:nowrap;">Assign & Update</button>
                                 </div>
                             </div>
@@ -820,7 +822,7 @@
                                 </div>
                                 <div class="detail-item">
                                     <span>Payment Method</span>
-                                    <span>${order.paymentMethod || '--'}</span>
+                                    <span>${hasSelectedMethod ? `<strong style="color:#60a5fa; font-weight:700; font-size:0.95rem;">${order.paymentMethod}</strong>` : '<span style="color:var(--text-muted); font-style:italic;">Not chosen yet (Selecting...)</span>'}</span>
                                 </div>
                                 <div class="detail-item">
                                     <span>Client Email</span>
